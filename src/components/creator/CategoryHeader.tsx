@@ -1,83 +1,58 @@
 "use client";
 
-import { useState } from "react";
-import { toApiError } from "@/lib/api/client";
-import { validateCategoryName } from "@/lib/validation/quiz";
-import { useQuizEditor } from "@/providers/QuizEditorProvider";
+import { useRef, useState } from "react";
+import { CATEGORY_NAME_MAX } from "@/lib/validation/quiz";
 import type { Category } from "@/types";
-import { Alert } from "@/components/ui/Alert";
-import { Button } from "@/components/ui/Button";
-import { ConfirmDelete } from "@/components/ui/ConfirmDelete";
-import { TextField } from "@/components/ui/TextField";
 
-/** Category title with inline rename and delete. */
-export function CategoryHeader({ category }: { category: Category }) {
-  const editor = useQuizEditor();
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(category.name);
-  const [fieldError, setFieldError] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+interface CategoryHeaderProps {
+  category: Category;
+  /** Resolves true when saved. On false the input goes back to the current name. */
+  onRename: (categoryId: string, name: string) => Promise<boolean>;
+  onRemove: (category: Category) => void;
+}
 
-  function startEditing() {
-    setName(category.name);
-    setFieldError(null);
-    setFormError(null);
-    setEditing(true);
-  }
+/** Column title on the board: edit in place (Enter/blur saves, Esc cancels), ✕ deletes. */
+export function CategoryHeader({ category, onRename, onRemove }: CategoryHeaderProps) {
+  const [draft, setDraft] = useState<string | null>(null); // null = not editing
+  const cancelled = useRef(false);
 
-  async function save(event: React.FormEvent) {
-    event.preventDefault();
-    setFormError(null);
-
-    const invalid = validateCategoryName(name);
-    setFieldError(invalid);
-    if (invalid) return;
-
-    setBusy(true);
-    try {
-      await editor.renameCategory(category.id, name.trim());
-      setEditing(false);
-    } catch (e) {
-      const error = toApiError(e);
-      if (error.fieldErrors.name) setFieldError(error.fieldErrors.name);
-      else setFormError(error.message); // e.g. 409 duplicate category name
-    } finally {
-      setBusy(false);
+  async function commit() {
+    if (cancelled.current) {
+      cancelled.current = false;
+      return;
     }
-  }
-
-  if (editing) {
-    return (
-      <form onSubmit={save} noValidate className="space-y-3 rounded-lg border border-white/15 bg-white/5 p-3">
-        <TextField label="Category name" value={name} onChange={(e) => setName(e.target.value)} error={fieldError} autoFocus />
-        {formError && <Alert>{formError}</Alert>}
-        <div className="flex gap-2">
-          <Button type="submit" size="sm" loading={busy}>
-            Save
-          </Button>
-          <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>
-            Cancel
-          </Button>
-        </div>
-      </form>
-    );
+    if (draft === null) return;
+    const name = draft.trim();
+    if (name !== category.name) await onRename(category.id, name);
+    setDraft(null);
   }
 
   return (
-    <div className="space-y-1">
-      <h3 className="rounded-lg bg-jeopardy-board px-3 py-3 text-center text-sm font-bold uppercase tracking-wide">
-        {category.name}
-      </h3>
-      <div className="flex items-start justify-center gap-1">
-        <Button size="sm" variant="ghost" onClick={startEditing}>
-          Rename
-        </Button>
-        <ConfirmDelete
-          prompt={`Delete "${category.name}" and its ${category.questions.length} question(s)?`}
-          onConfirm={() => editor.removeCategory(category.id)}
-        />
-      </div>
+    <div className="flex min-h-16 items-center gap-1 rounded-lg bg-jeopardy-board p-1.5">
+      <input
+        aria-label="Category name"
+        value={draft ?? category.name}
+        maxLength={CATEGORY_NAME_MAX}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") {
+            cancelled.current = true;
+            setDraft(null);
+            e.currentTarget.blur();
+          }
+        }}
+        className="min-h-10 w-full min-w-0 rounded border border-transparent bg-transparent px-2 text-center text-sm font-bold hover:border-white/40 focus:border-white/60 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+      />
+      <button
+        type="button"
+        aria-label={`Delete category ${category.name}`}
+        onClick={() => onRemove(category)}
+        className="h-11 w-8 shrink-0 text-white/70 transition hover:text-white"
+      >
+        ✕
+      </button>
     </div>
   );
 }

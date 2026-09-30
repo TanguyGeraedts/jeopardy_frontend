@@ -13,6 +13,9 @@ export const MEDIA_URL_MAX = 2048;
 
 const HTTP_URL = /^https?:\/\/\S+$/;
 
+export const POINTS_ERROR = "Points must be a whole number greater than 0";
+export const isValidPoints = (points: number): boolean => Number.isInteger(points) && points > 0;
+
 export function validateQuizName(name: string): string | null {
   const value = name.trim();
   if (!value) return "Quiz name is required";
@@ -41,9 +44,7 @@ export function validateQuestion(values: QuestionFormValues): Record<string, str
   const errors: Record<string, string> = {};
 
   const points = Number(values.points);
-  if (!values.points.trim() || !Number.isInteger(points) || points <= 0) {
-    errors.points = "Points must be a whole number greater than 0";
-  }
+  if (!values.points.trim() || !isValidPoints(points)) errors.points = POINTS_ERROR;
 
   const questionText = values.questionText.trim();
   if (!questionText) errors.questionText = "Question text is required";

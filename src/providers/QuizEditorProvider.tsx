@@ -12,7 +12,7 @@ import {
   withQuestionReplaced,
 } from "@/lib/quiz-state";
 import type { QuizUpdate } from "@/hooks/useQuiz";
-import type { QuestionRequest } from "@/types";
+import type { Category, QuestionRequest } from "@/types";
 
 /**
  * Everything the board can do to the quiz it shows. Each action calls the API, then applies the
@@ -20,7 +20,7 @@ import type { QuestionRequest } from "@/types";
  */
 interface QuizEditor {
   quizId: string;
-  addCategory: (name: string) => Promise<void>;
+  addCategory: (name: string) => Promise<Category>;
   renameCategory: (categoryId: string, name: string) => Promise<void>;
   removeCategory: (categoryId: string) => Promise<void>;
   addQuestion: (categoryId: string, body: QuestionRequest) => Promise<void>;
@@ -43,6 +43,7 @@ export function QuizEditorProvider({ quizId, onQuizChange, children }: ProviderP
       async addCategory(name) {
         const category = await addCategory(quizId, { name });
         onQuizChange((q) => withCategoryAdded(q, category));
+        return category;
       },
       async renameCategory(categoryId, name) {
         const category = await renameCategory(quizId, categoryId, { name });

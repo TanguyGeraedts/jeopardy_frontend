@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { toApiError } from "@/lib/api/client";
 import { validateQuestion, type QuestionFormValues } from "@/lib/validation/quiz";
 import { ANSWER_TYPES, type AnswerType, type QuestionRequest } from "@/types";
@@ -22,13 +22,17 @@ interface QuestionFormProps {
     dailyDouble?: boolean;
   };
   submitLabel: string;
+  /** Points already used by the other questions in this category (instant duplicate check). */
+  takenPoints?: readonly number[];
+  /** Extra buttons on the right of the action row (e.g. Delete). */
+  extraActions?: ReactNode;
   /** Should throw on failure (ApiError); the form shows it. */
   onSubmit: (body: QuestionRequest) => Promise<void>;
   onCancel: () => void;
 }
 
 /** Shared by "add question" and "edit question". */
-export function QuestionForm({ initial, submitLabel, onSubmit, onCancel }: QuestionFormProps) {
+export function QuestionForm({ initial, submitLabel, takenPoints, extraActions, onSubmit, onCancel }: QuestionFormProps) {
   const [values, setValues] = useState<QuestionFormValues>({
     points: String(initial.points),
     questionText: initial.questionText ?? "",
@@ -49,6 +53,9 @@ export function QuestionForm({ initial, submitLabel, onSubmit, onCancel }: Quest
     setFormError(null);
 
     const found = validateQuestion(values);
+    if (!found.points && takenPoints?.includes(Number(values.points))) {
+      found.points = `${values.points} points is already used in this category`;
+    }
     setErrors(found);
     if (Object.keys(found).length > 0) return;
 
@@ -71,7 +78,7 @@ export function QuestionForm({ initial, submitLabel, onSubmit, onCancel }: Quest
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-3 rounded-lg border border-white/15 bg-white/5 p-3">
+    <form onSubmit={submit} noValidate className="space-y-3">
       <TextField
         label="Points"
         type="number"
@@ -102,13 +109,16 @@ export function QuestionForm({ initial, submitLabel, onSubmit, onCancel }: Quest
 
       {formError && <Alert>{formError}</Alert>}
 
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" loading={busy}>
-          {submitLabel}
-        </Button>
-        <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={onCancel}>
-          Cancel
-        </Button>
+      <div className="flex items-center justify-between gap-2 pt-2">
+        <div className="flex gap-2">
+          <Button type="submit" size="sm" loading={busy}>
+            {submitLabel}
+          </Button>
+          <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+        {extraActions}
       </div>
     </form>
   );

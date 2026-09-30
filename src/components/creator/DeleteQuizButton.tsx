@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteQuiz } from "@/lib/api/quizzes";
+import { forgetRows } from "@/lib/rows-store";
 import { toApiError } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
 
@@ -18,6 +19,7 @@ export function DeleteQuizButton({ quizId, quizName }: { quizId: string; quizNam
     setError(null);
     try {
       await deleteQuiz(quizId);
+      forgetRows(quizId);
       router.push("/creator");
     } catch (e) {
       setError(toApiError(e).message);
@@ -28,7 +30,7 @@ export function DeleteQuizButton({ quizId, quizName }: { quizId: string; quizNam
   if (!confirming) {
     return (
       <Button variant="secondary" onClick={() => setConfirming(true)}>
-        Delete
+        Delete quiz
       </Button>
     );
   }

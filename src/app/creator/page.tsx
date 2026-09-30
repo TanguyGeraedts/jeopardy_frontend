@@ -4,7 +4,10 @@ import { QuizList } from "@/components/creator/QuizList";
 export default function CreatorPage() {
     return (
         <div className="space-y-10">
-            <h1 className="text-3xl font-extrabold">Quiz creator</h1>
+            <div>
+                <h1 className="text-3xl font-extrabold">Quiz creator</h1>
+                <p className="mt-1 text-white/50">Build a Jeopardy-style board: categories across, point values down.</p>
+            </div>
 
             <div className="max-w-md">
                 <CreateQuizForm />

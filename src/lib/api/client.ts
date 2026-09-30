@@ -19,6 +19,12 @@ export function toApiError(error: unknown): ApiError {
     return new ApiError(0, "Unexpected error", error instanceof Error ? error.message : "Something went wrong.");
 }
 
+/** Best single sentence to show for an error: the first field message if there is one, else the general one. */
+export function errorMessage(error: unknown): string {
+    const apiError = toApiError(error);
+    return Object.values(apiError.fieldErrors)[0] ?? apiError.message;
+}
+
 interface RequestOptions {
     method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
     body?: unknown;

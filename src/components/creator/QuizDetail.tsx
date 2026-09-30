@@ -20,7 +20,7 @@ export function QuizDetail({ quizId }: { quizId: string }) {
     <QuizEditorProvider quizId={quiz.id} onQuizChange={setQuiz}>
       <div className="space-y-6">
         <Link href="/creator" className="text-sm text-white/50 hover:text-white">
-          &larr; Back
+          &lsaquo; All quizzes
         </Link>
         <div className="flex items-start justify-between gap-4">
           <QuizHeader quiz={quiz} onUpdated={setQuiz} />

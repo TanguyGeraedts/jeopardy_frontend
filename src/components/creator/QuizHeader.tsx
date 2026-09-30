@@ -1,80 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { updateQuiz } from "@/lib/api/quizzes";
-import { toApiError } from "@/lib/api/client";
-import { validateQuizName } from "@/lib/validation/quiz";
+import { errorMessage } from "@/lib/api/client";
+import { QUIZ_NAME_MAX, validateQuizName } from "@/lib/validation/quiz";
+import { useToast } from "@/providers/ToastProvider";
 import type { Quiz } from "@/types";
-import { Alert } from "@/components/ui/Alert";
-import { Button } from "@/components/ui/Button";
-import { TextField } from "@/components/ui/TextField";
 
 interface QuizHeaderProps {
     quiz: Quiz;
     onUpdated: (quiz: Quiz) => void;
 }
 
+/** Quiz title as a big input: Enter/blur saves, Esc cancels. */
 export function QuizHeader({ quiz, onUpdated }: QuizHeaderProps) {
-    const [editing, setEditing] = useState(false);
-    const [name, setName] = useState(quiz.name);
-    const [fieldError, setFieldError] = useState<string | null>(null);
-    const [formError, setFormError] = useState<string | null>(null);
-    const [busy, setBusy] = useState(false);
+    const { show } = useToast();
+    const [draft, setDraft] = useState<string | null>(null); // null = not editing
+    const cancelled = useRef(false);
 
-    function startEditing() {
-        setName(quiz.name);
-        setFieldError(null);
-        setFormError(null);
-        setEditing(true);
-    }
-
-    async function save(event: React.FormEvent) {
-        event.preventDefault();
-        setFormError(null);
-
-        const invalid = validateQuizName(name);
-        setFieldError(invalid);
-        if (invalid) return;
-
-        setBusy(true);
-        try {
-            onUpdated(await updateQuiz(quiz.id, { name: name.trim() }));
-            setEditing(false);
-        } catch (e) {
-            const error = toApiError(e);
-            if (error.fieldErrors.name) setFieldError(error.fieldErrors.name);
-            else setFormError(error.message);
-        } finally {
-            setBusy(false);
+    async function commit() {
+        if (cancelled.current) {
+            cancelled.current = false;
+            return;
         }
-    }
+        if (draft === null) return;
+        const name = draft.trim();
 
-    if (!editing) {
-        return (
-            <div>
-                <div className="flex items-center gap-3">
-                    <h1 className="text-3xl font-extrabold">{quiz.name}</h1>
-                    <Button variant="ghost" onClick={startEditing}>
-                        Rename
-                    </Button>
-                </div>
-                <p className="text-xs text-white/40">{quiz.id}</p>
-            </div>
-        );
+        if (name !== quiz.name) {
+            const invalid = validateQuizName(name);
+            if (invalid) {
+                show(invalid, { tone: "error" });
+            } else {
+                try {
+                    onUpdated(await updateQuiz(quiz.id, { name }));
+                    show("Name saved");
+                } catch (e) {
+                    show(errorMessage(e), { tone: "error" });
+                }
+            }
+        }
+        setDraft(null);
     }
 
     return (
-        <form onSubmit={save} className="w-full max-w-md space-y-3" noValidate>
-            <TextField label="Quiz name" value={name} onChange={(e) => setName(e.target.value)} error={fieldError} autoFocus />
-            {formError && <Alert>{formError}</Alert>}
-            <div className="flex gap-2">
-                <Button type="submit" loading={busy}>
-                    Save
-                </Button>
-                <Button type="button" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>
-                    Cancel
-                </Button>
-            </div>
-        </form>
+        <div className="min-w-0 flex-1">
+            <label htmlFor="quiz-name" className="text-sm text-white/50">
+                Quiz name
+            </label>
+            <input
+                id="quiz-name"
+                value={draft ?? quiz.name}
+                maxLength={QUIZ_NAME_MAX}
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={commit}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") e.currentTarget.blur();
+                    if (e.key === "Escape") {
+                        cancelled.current = true;
+                        setDraft(null);
+                        e.currentTarget.blur();
+                    }
+                }}
+                className="block min-h-12 w-full max-w-xl rounded-md border border-transparent bg-transparent px-1 text-3xl font-extrabold hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+            />
+            <p className="text-xs text-white/40">{quiz.id}</p>
+        </div>
     );
 }

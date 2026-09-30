@@ -49,7 +49,7 @@ export function AddCategory() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="w-full rounded-lg border border-dashed border-white/25 px-3 py-3 text-sm font-semibold text-white/60 transition hover:border-jeopardy-gold hover:text-jeopardy-gold"
+        className="flex h-full min-h-16 w-full items-center justify-center rounded-lg border-2 border-dashed border-white/25 px-3 text-sm font-semibold text-white/60 transition hover:border-jeopardy-gold hover:text-jeopardy-gold"
       >
         + Add category
       </button>
