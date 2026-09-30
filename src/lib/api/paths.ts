@@ -2,8 +2,9 @@
 export const API_V1 = "/api/v1";
 
 export const CreatorPaths = {
+    /** POST = create, GET = list my quizzes (same path, different method). */
     quizzes: `${API_V1}/quizzes`,
-    myQuizzes: `${API_V1}/quizzes/me`,
+    /** GET = read, PUT = update, DELETE = delete. */
     quizById: (id: string) => `${API_V1}/quizzes/${encodeURIComponent(id)}`,
 } as const;
 
