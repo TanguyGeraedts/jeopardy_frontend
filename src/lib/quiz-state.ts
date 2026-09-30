@@ -34,6 +34,9 @@ export const withQuestionReplaced = (quiz: Quiz, categoryId: string, question: Q
 export const withQuestionRemoved = (quiz: Quiz, categoryId: string, questionId: string): Quiz =>
   mapCategory(quiz, categoryId, (c) => ({ ...c, questions: c.questions.filter((q) => q.id !== questionId) }));
 
+/** Total number of questions across all categories. */
+export const countQuestions = (quiz: Quiz): number => quiz.categories.reduce((sum, c) => sum + c.questions.length, 0);
+
 /** Point values every new board starts with. Rows only exist client-side (the backend just stores points). */
 export const POINT_LADDER = [200, 400, 600, 800, 1000] as const;
 
