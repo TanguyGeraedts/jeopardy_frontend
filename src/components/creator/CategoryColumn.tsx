@@ -1,4 +1,6 @@
 import type { Category } from "@/types";
+import { AddQuestion } from "./AddQuestion";
+import { CategoryHeader } from "./CategoryHeader";
 import { QuestionTile } from "./QuestionTile";
 
 export function CategoryColumn({ category }: { category: Category }) {
@@ -6,18 +8,16 @@ export function CategoryColumn({ category }: { category: Category }) {
 
   return (
     <section className="space-y-2">
-      <h3 className="rounded-lg bg-jeopardy-board px-3 py-3 text-center text-sm font-bold uppercase tracking-wide">
-        {category.name}
-      </h3>
-      {questions.length === 0 ? (
-        <p className="text-center text-xs text-white/40">No questions yet</p>
-      ) : (
+      <CategoryHeader category={category} />
+      {questions.length === 0 && <p className="text-center text-xs text-white/40">No questions yet</p>}
+      {questions.length > 0 && (
         <ul className="space-y-2">
           {questions.map((q) => (
-            <QuestionTile key={q.id} question={q} />
+            <QuestionTile key={q.id} categoryId={category.id} question={q} />
           ))}
         </ul>
       )}
+      <AddQuestion category={category} />
     </section>
   );
 }
