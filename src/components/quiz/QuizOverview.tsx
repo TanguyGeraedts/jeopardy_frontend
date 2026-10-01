@@ -48,7 +48,7 @@ export function QuizOverview({ quizId }: { quizId: string }) {
 
       <div className="flex flex-wrap items-start gap-3">
         {playable ? (
-          <LinkButton href={`/quizzes/${quiz.id}/play`}>&#9654; Play</LinkButton>
+          <LinkButton href={`/quizzes/${quiz.id}/host`}>&#9654; Play</LinkButton>
         ) : (
           <Button disabled>&#9654; Play</Button>
         )}

@@ -1,11 +1,32 @@
-/** One colour per team, by position. Full class names so Tailwind can see them. */
-const TEAM_COLORS = [
-  { solid: "bg-red-600 hover:bg-red-500", bar: "bg-red-500" },
-  { solid: "bg-sky-600 hover:bg-sky-500", bar: "bg-sky-500" },
-  { solid: "bg-emerald-600 hover:bg-emerald-500", bar: "bg-emerald-500" },
-  { solid: "bg-orange-600 hover:bg-orange-500", bar: "bg-orange-500" },
-  { solid: "bg-violet-600 hover:bg-violet-500", bar: "bg-violet-500" },
-  { solid: "bg-pink-600 hover:bg-pink-500", bar: "bg-pink-500" },
-] as const;
+import type { TeamColour } from "@/types";
 
-export const teamColor = (teamIndex: number) => TEAM_COLORS[teamIndex % TEAM_COLORS.length];
+type ColourStyle = {
+    /** Filled button. */
+    solid: string;
+    /** Thin bar on top of a scoreboard card. */
+    bar: string;
+    /** Round swatch (colour picker, labels). */
+    swatch: string;
+};
+
+/**
+ * The lobby service's colours as hex values. Class names are written out in full
+ * (no string building) so Tailwind can see them.
+ */
+export const TEAM_COLOUR_STYLES: Record<TeamColour, ColourStyle> = {
+    RED: { solid: "bg-[#EF4444] hover:brightness-110", bar: "bg-[#EF4444]", swatch: "bg-[#EF4444]" },
+    BLUE: { solid: "bg-[#3B82F6] hover:brightness-110", bar: "bg-[#3B82F6]", swatch: "bg-[#3B82F6]" },
+    GREEN: { solid: "bg-[#10B981] hover:brightness-110", bar: "bg-[#10B981]", swatch: "bg-[#10B981]" },
+    YELLOW: { solid: "bg-[#F59E0B] hover:brightness-110", bar: "bg-[#F59E0B]", swatch: "bg-[#F59E0B]" },
+    PURPLE: { solid: "bg-[#8B5CF6] hover:brightness-110", bar: "bg-[#8B5CF6]", swatch: "bg-[#8B5CF6]" },
+    ORANGE: { solid: "bg-[#F97316] hover:brightness-110", bar: "bg-[#F97316]", swatch: "bg-[#F97316]" },
+    PINK: { solid: "bg-[#EC4899] hover:brightness-110", bar: "bg-[#EC4899]", swatch: "bg-[#EC4899]" },
+    TEAL: { solid: "bg-[#14B8A6] hover:brightness-110", bar: "bg-[#14B8A6]", swatch: "bg-[#14B8A6]" },
+};
+
+export const teamColourStyle = (colour: TeamColour) => TEAM_COLOUR_STYLES[colour];
+
+const BY_POSITION = Object.values(TEAM_COLOUR_STYLES);
+
+/** One colour per team, by position (used until teams carry their own colour). Same order as the lobby's colour list. */
+export const teamColor = (teamIndex: number) => BY_POSITION[teamIndex % BY_POSITION.length];
