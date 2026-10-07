@@ -1,34 +1,78 @@
 "use client";
 
 import { useMemo, useReducer, useState, type Dispatch } from "react";
+import { useGameSession } from "@/hooks/useGameSession";
 import { adminReducer, canBuzz, initialAdmin, type AdminAction } from "@/lib/admin-state";
-import { formatDuration, previewTeams } from "@/lib/lobby-config";
 import { cn } from "@/lib/cn";
 import { teamColor, teamColourStyle } from "@/lib/team-colors";
+import { Alert } from "@/components/ui/Alert";
+import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/LinkButton";
-import type { GameTeam, LobbyRequest } from "@/types";
+import { TEAM_COLOURS } from "@/types";
+import type { GameSession, GameTeam, LobbyRequest, TeamColour } from "@/types";
 
 const STEPS = [-500, -100, 100, 500] as const;
 
 interface AdminMenuProps {
   quizId: string;
   quizName: string;
+  /** The game session created for this lobby. Everything shown here is read from it. */
+  sessionId: string;
+  /** The settings the host picked: only used to remember what was asked for (the session is the source of truth). */
   lobby: LobbyRequest;
-  /** Shown to players so they can join. Mocked until the lobby service exists. */
-  lobbyCode: string;
   onEditSettings: () => void;
+}
+
+const STATE_LABELS: Record<GameSession["state"], string> = {
+  LOBBY: "Waiting for the lobby host to start",
+  BOARD_SELECTION: "Game running · picking a clue",
+  CLUE_READING: "Game running · reading a clue",
+  BUZZER_OPEN: "Game running · buzzers open",
+  ANSWER_EVALUATION: "Game running · evaluating an answer",
+  GAME_OVER: "Game over",
+};
+
+const asColour = (value: string | null): TeamColour | undefined => TEAM_COLOURS.find((c) => c === value?.toUpperCase());
+
+/** Turns the backend's flat teams/players lists into the teams the admin screen renders. */
+function toGameTeams(session: GameSession): GameTeam[] {
+  return session.teams.map((team) => ({
+    id: team.id,
+    name: team.name,
+    players: session.players.filter((p) => p.teamId === team.id).map((p) => ({ id: p.id, name: p.name })),
+  }));
 }
 
 /**
  * The host's control panel, meant for a second screen while the board runs on the shared one.
- * Everything here is local state for now: each control becomes a command to the game service later.
+ * Lobby code, mode, teams and players come from the game session (polled). Score and buzzer controls
+ * are still local state: each becomes a command to the game service later.
  */
-export function AdminMenu({ quizId, quizName, lobby, lobbyCode, onEditSettings }: AdminMenuProps) {
-  // TODO(lobby): replace with the teams that actually joined.
-  const teams = useMemo(() => previewTeams(lobby), [lobby]);
-  const [admin, dispatch] = useReducer(adminReducer, teams, initialAdmin);
+export function AdminMenu({ quizId, quizName, sessionId, lobby, onEditSettings }: AdminMenuProps) {
+  const sessionState = useGameSession(sessionId);
+
+  if (sessionState.status === "loading") return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (sessionState.status === "error") {
+    return (
+      <div className="space-y-4">
+        <Alert title={sessionState.error.title}>{sessionState.error.message}</Alert>
+        <Button variant="ghost" onClick={onEditSettings}>Back to lobby settings</Button>
+      </div>
+    );
+  }
+  const { session } = sessionState;
+
+  return <AdminPanel key={session.teams.map((t) => t.id).join(",")} quizId={quizId} quizName={quizName} session={session} lobby={lobby} onEditSettings={onEditSettings} />;
+}
+
+function AdminPanel({ quizId, quizName, session, lobby, onEditSettings }: { quizId: string; quizName: string; session: GameSession; lobby: LobbyRequest; onEditSettings: () => void }) {
+  const teams = useMemo(() => toGameTeams(session), [session]);
+  // Seeded from the server's scores. The panel remounts (see key above) when the set of teams changes, e.g. after the lobby starts.
+  const [admin, dispatch] = useReducer(adminReducer, teams, (t) => ({ ...initialAdmin(t), scores: Object.fromEntries(session.teams.map((team) => [team.id, team.score])) }));
+  const solo = session.mode === "SOLO";
+  const started = session.state !== "LOBBY";
 
   return (
     <div className="space-y-6">
@@ -50,13 +94,14 @@ export function AdminMenu({ quizId, quizName, lobby, lobbyCode, onEditSettings }
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="space-y-1">
           <p className="text-sm text-white/50">Lobby code</p>
-          <p className="font-mono text-3xl font-extrabold tracking-widest text-jeopardy-gold">{lobbyCode}</p>
+          <p className="font-mono text-3xl font-extrabold tracking-widest text-jeopardy-gold">{session.lobbyCode}</p>
+          <p className="text-sm text-white/50">{STATE_LABELS[session.state]}</p>
         </Card>
         <Card className="space-y-1">
           <p className="text-sm text-white/50">Mode</p>
-          <p className="text-xl font-bold">{lobby.teamCount === null ? "Solo" : `Teams · ${lobby.teamCount}`}</p>
+          <p className="text-xl font-bold">{solo ? "Solo" : `Teams · ${lobby.teamCount ?? session.teams.length}`}</p>
           <p className="text-sm text-white/50">
-            {lobby.minPlayers}&ndash;{lobby.maxPlayers} players · {lobby.allowLateJoin ? "late join on" : "late join off"} · expires in {formatDuration(lobby.ttlSeconds)}
+            {started ? `${session.players.length} player${session.players.length === 1 ? "" : "s"} joined` : `Up to ${lobby.maxPlayers} players`} · {session.clues.length} clues on the board
           </p>
         </Card>
         <Card className={cn("space-y-3", admin.allBuzzersBlocked && "border-red-400/60 bg-red-500/10")}>
@@ -70,16 +115,24 @@ export function AdminMenu({ quizId, quizName, lobby, lobbyCode, onEditSettings }
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Teams</h2>
+          <h2 className="text-xl font-bold">{solo ? "Players" : "Teams"}</h2>
           <Button size="sm" variant="ghost" onClick={() => dispatch({ type: "resetScores" })}>
             Reset all scores
           </Button>
         </div>
-        <ul className="grid gap-3 md:grid-cols-2">
-          {teams.map((team, index) => (
-            <TeamRow key={team.id} team={team} index={index} lobby={lobby} score={admin.scores[team.id] ?? 0} buzzable={canBuzz(admin, team.id)} globallyBlocked={admin.allBuzzersBlocked} dispatch={dispatch} />
-          ))}
-        </ul>
+        {teams.length === 0 ? (
+          <Card>
+            <p className="text-white/70">
+              Nobody is here yet. Players join with code <span className="font-mono font-bold text-jeopardy-gold">{session.lobbyCode}</span>; the first one to join is the lobby host and starts the game. Teams and players show up here once it starts.
+            </p>
+          </Card>
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2">
+            {teams.map((team, index) => (
+              <TeamRow key={team.id} team={team} index={index} colour={asColour(session.teams[index]?.colour ?? null)} solo={solo} score={admin.scores[team.id] ?? 0} buzzable={canBuzz(admin, team.id)} globallyBlocked={admin.allBuzzersBlocked} dispatch={dispatch} />
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
@@ -88,7 +141,8 @@ export function AdminMenu({ quizId, quizName, lobby, lobbyCode, onEditSettings }
 function TeamRow({
   team,
   index,
-  lobby,
+  colour,
+  solo,
   score,
   buzzable,
   globallyBlocked,
@@ -96,16 +150,15 @@ function TeamRow({
 }: {
   team: GameTeam;
   index: number;
-  lobby: LobbyRequest;
+  colour: TeamColour | undefined;
+  solo: boolean;
   score: number;
   buzzable: boolean;
   globallyBlocked: boolean;
   dispatch: Dispatch<AdminAction>;
 }) {
   const [draft, setDraft] = useState("");
-  const colour = lobby.teamColours[index];
   const bar = colour ? teamColourStyle(colour).bar : teamColor(index).bar;
-  const solo = team.players.length === 1 && team.players[0].name === team.name;
 
   function applyDraft() {
     const value = Number(draft);

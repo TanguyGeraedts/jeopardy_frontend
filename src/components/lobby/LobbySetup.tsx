@@ -32,10 +32,12 @@ interface LobbySetupProps {
     initial?: LobbyForm;
     /** The validated request body for the lobby service. */
     onCreate: (request: LobbyRequest, form: LobbyForm) => void;
+    /** True while the lobby is being created: disables the button. */
+    busy?: boolean;
 }
 
 /** The screen before the game: pick the mode and lobby settings, then create the lobby. */
-export function LobbySetup({ initial, onCreate }: LobbySetupProps) {
+export function LobbySetup({ initial, onCreate, busy = false }: LobbySetupProps) {
     const [form, setForm] = useState<LobbyForm>(() => initial ?? defaultLobbyForm());
     const [submitted, setSubmitted] = useState(false);
 
@@ -174,7 +176,7 @@ export function LobbySetup({ initial, onCreate }: LobbySetupProps) {
             </details>
 
             <div className="flex items-center gap-3">
-                <Button onClick={submit}>Create lobby</Button>
+                <Button onClick={submit} disabled={busy}>{busy ? "Creating lobby…" : "Create lobby"}</Button>
                 {submitted && Object.keys(errors).length > 0 && <p className="text-sm text-red-300">Fix the highlighted settings first.</p>}
             </div>
         </div>

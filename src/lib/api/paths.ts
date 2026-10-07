@@ -21,6 +21,13 @@ export const CreatorPaths = {
     `${CreatorPaths.questions(quizId, categoryId)}/${enc(questionId)}`,
 } as const;
 
+export const GameplayPaths = {
+  /** POST = create a game session (the backend also creates the lobby and returns its code via GET). */
+  sessions: `${API_V1}/game-sessions`,
+  /** GET = read the session (lobby code, state, teams, players, board). */
+  sessionById: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}`,
+} as const;
+
 export const AuthPaths = {
   mockToken: "/api/public/mock-auth/token",
   me: "/api/demo/me",
