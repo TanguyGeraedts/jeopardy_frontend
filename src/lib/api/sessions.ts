@@ -8,3 +8,7 @@ export const createGameSession = (body: CreateGameSessionRequest, signal?: Abort
 
 export const getGameSession = (id: string, signal?: AbortSignal) =>
     apiFetch<GameSession>(GameplayPaths.sessionById(id), { signal });
+
+/** Gives Jeopardy the lobby's handoff token: it imports the players/teams and starts the game. Needs no login. */
+export const handoffGameSession = (id: string, token: string) =>
+    apiFetch<GameSession>(GameplayPaths.handoff(id), { method: "POST", body: { token }, auth: false });

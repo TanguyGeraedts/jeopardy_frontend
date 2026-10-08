@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { TEAM_COLOURS } from "@/types";
-import type { GameSession, GameTeam, LobbyRequest, TeamColour } from "@/types";
+import type { GameSession, GameTeam, TeamColour } from "@/types";
 
 const STEPS = [-500, -100, 100, 500] as const;
 
@@ -20,9 +20,6 @@ interface AdminMenuProps {
   quizName: string;
   /** The game session created for this lobby. Everything shown here is read from it. */
   sessionId: string;
-  /** The settings the host picked: only used to remember what was asked for (the session is the source of truth). */
-  lobby: LobbyRequest;
-  onEditSettings: () => void;
 }
 
 const STATE_LABELS: Record<GameSession["state"], string> = {
@@ -50,7 +47,7 @@ function toGameTeams(session: GameSession): GameTeam[] {
  * Lobby code, mode, teams and players come from the game session (polled). Score and buzzer controls
  * are still local state: each becomes a command to the game service later.
  */
-export function AdminMenu({ quizId, quizName, sessionId, lobby, onEditSettings }: AdminMenuProps) {
+export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
   const sessionState = useGameSession(sessionId);
 
   if (sessionState.status === "loading") return <div className="flex justify-center py-20"><Spinner /></div>;
@@ -58,16 +55,16 @@ export function AdminMenu({ quizId, quizName, sessionId, lobby, onEditSettings }
     return (
       <div className="space-y-4">
         <Alert title={sessionState.error.title}>{sessionState.error.message}</Alert>
-        <Button variant="ghost" onClick={onEditSettings}>Back to lobby settings</Button>
+        <LinkButton href={`/quizzes/${quizId}/host`} variant="ghost">Back to lobby settings</LinkButton>
       </div>
     );
   }
   const { session } = sessionState;
 
-  return <AdminPanel key={session.teams.map((t) => t.id).join(",")} quizId={quizId} quizName={quizName} session={session} lobby={lobby} onEditSettings={onEditSettings} />;
+  return <AdminPanel key={session.teams.map((t) => t.id).join(",")} quizId={quizId} quizName={quizName} session={session} />;
 }
 
-function AdminPanel({ quizId, quizName, session, lobby, onEditSettings }: { quizId: string; quizName: string; session: GameSession; lobby: LobbyRequest; onEditSettings: () => void }) {
+function AdminPanel({ quizId, quizName, session }: { quizId: string; quizName: string; session: GameSession }) {
   const teams = useMemo(() => toGameTeams(session), [session]);
   // Seeded from the server's scores. The panel remounts (see key above) when the set of teams changes, e.g. after the lobby starts.
   const [admin, dispatch] = useReducer(adminReducer, teams, (t) => ({ ...initialAdmin(t), scores: Object.fromEntries(session.teams.map((team) => [team.id, team.score])) }));
@@ -82,9 +79,9 @@ function AdminPanel({ quizId, quizName, session, lobby, onEditSettings }: { quiz
           <p className="text-white/50">Host controls</p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <Button variant="ghost" onClick={onEditSettings}>
-            Edit lobby settings
-          </Button>
+          <LinkButton href={`/quizzes/${quizId}/host`} variant="ghost">
+            New lobby
+          </LinkButton>
           <LinkButton href={`/quizzes/${quizId}/play`} target="_blank" rel="noopener noreferrer">
             Open game board &#8599;
           </LinkButton>
@@ -99,9 +96,9 @@ function AdminPanel({ quizId, quizName, session, lobby, onEditSettings }: { quiz
         </Card>
         <Card className="space-y-1">
           <p className="text-sm text-white/50">Mode</p>
-          <p className="text-xl font-bold">{solo ? "Solo" : `Teams · ${lobby.teamCount ?? session.teams.length}`}</p>
+          <p className="text-xl font-bold">{solo ? "Solo" : session.teams.length > 0 ? `Teams · ${session.teams.length}` : "Teams"}</p>
           <p className="text-sm text-white/50">
-            {started ? `${session.players.length} player${session.players.length === 1 ? "" : "s"} joined` : `Up to ${lobby.maxPlayers} players`} · {session.clues.length} clues on the board
+            {started ? `${session.players.length} player${session.players.length === 1 ? "" : "s"} joined` : "Waiting for players"} · {session.clues.length} clues on the board
           </p>
         </Card>
         <Card className={cn("space-y-3", admin.allBuzzersBlocked && "border-red-400/60 bg-red-500/10")}>

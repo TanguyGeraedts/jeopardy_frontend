@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuiz } from "@/hooks/useQuiz";
 import { errorMessage } from "@/lib/api/client";
@@ -8,10 +9,7 @@ import { createGameSession } from "@/lib/api/sessions";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
 import type { CreateGameSessionRequest, LobbyForm, LobbyRequest } from "@/types";
-import { AdminMenu } from "./AdminMenu";
 import { LobbySetup } from "./LobbySetup";
-
-type Phase = { status: "setup" } | { status: "live"; request: LobbyRequest; sessionId: string };
 
 /** Maps the setup form onto what the backend accepts. The backend decides the rest (lobby TTL, colours, late join, ...). */
 function toCreateRequest(quizId: string, request: LobbyRequest): CreateGameSessionRequest {
@@ -21,14 +19,14 @@ function toCreateRequest(quizId: string, request: LobbyRequest): CreateGameSessi
 }
 
 /**
- * Everything the host sees before and during a game.
- * Setup first (pick the mode and lobby settings), then the admin menu, which stays open on a second screen.
- * Creating the lobby = creating a game session: the backend creates the lobby and hands us the session.
+ * The host's setup screen: pick the mode and lobby settings and create the lobby.
+ * Creating the lobby = creating a game session (the backend creates the lobby too). We then go to
+ * /quizzes/{id}/host/{sessionId}, the admin menu, so a refresh keeps you on the same game.
  */
 export function HostScreen({ quizId }: { quizId: string }) {
   const { state } = useQuiz(quizId);
-  const [phase, setPhase] = useState<Phase>({ status: "setup" });
-  // Kept so "Edit lobby settings" reopens the form as it was.
+  const router = useRouter();
+  // Kept so the form isn't reset if creating the lobby fails.
   const [form, setForm] = useState<LobbyForm | undefined>();
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -37,20 +35,16 @@ export function HostScreen({ quizId }: { quizId: string }) {
   if (state.status === "error") return <Alert title={state.error.title}>{state.error.message}</Alert>;
   const { quiz } = state;
 
-  if (phase.status === "live") {
-    return <AdminMenu quizId={quiz.id} quizName={quiz.name} sessionId={phase.sessionId} lobby={phase.request} onEditSettings={() => setPhase({ status: "setup" })} />;
-  }
-
   async function create(request: LobbyRequest, submitted: LobbyForm) {
     setForm(submitted);
     setCreating(true);
     setCreateError(null);
     try {
       const { gameSessionId } = await createGameSession(toCreateRequest(quiz.id, request));
-      setPhase({ status: "live", request, sessionId: gameSessionId });
+      router.push(`/quizzes/${quiz.id}/host/${gameSessionId}`);
+      return; // keep the button disabled while navigating
     } catch (error) {
       setCreateError(errorMessage(error));
-    } finally {
       setCreating(false);
     }
   }

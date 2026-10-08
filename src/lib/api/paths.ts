@@ -26,6 +26,8 @@ export const GameplayPaths = {
   sessions: `${API_V1}/game-sessions`,
   /** GET = read the session (lobby code, state, teams, players, board). */
   sessionById: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}`,
+  /** POST = hand over the lobby's signed handoff token (public: the token is the credential). */
+  handoff: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/handoff`,
 } as const;
 
 export const AuthPaths = {
