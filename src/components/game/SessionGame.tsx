@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useBuzzerSounds } from "@/hooks/useBuzzerSounds";
 import { useGameSession } from "@/hooks/useGameSession";
 import { errorMessage } from "@/lib/api/client";
 import { hostControls } from "@/lib/api/sessions";
+import { audioUnlocked, unlockAudio } from "@/lib/buzzer-sounds";
+import { cn } from "@/lib/cn";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
 import type { GameSession, GameTeam, SessionClue } from "@/types";
@@ -28,6 +31,8 @@ export function SessionGame({ quizId, sessionId }: { quizId: string; sessionId: 
   const { state, apply } = useGameSession(sessionId);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [muted, setMuted] = useState(false);
+  useBuzzerSounds(state.status === "success" ? state.session : null, muted);
 
   /** Runs a host action and shows its result right away. */
   const run = async (action: () => Promise<GameSession>) => {
@@ -54,9 +59,12 @@ export function SessionGame({ quizId, sessionId }: { quizId: string; sessionId: 
           Lobby <span className="font-bold text-jeopardy-gold">{session.lobbyCode}</span>
         </p>
         {error && <p role="alert" className="truncate text-sm text-red-300">{error}</p>}
-        <Link href={`/quizzes/${quizId}/host/${sessionId}`} className="text-sm text-white/50 hover:text-white">
-          Exit board
-        </Link>
+        <div className="flex items-center gap-4">
+          <SoundToggle muted={muted} onToggle={() => setMuted((m) => !m)} />
+          <Link href={`/quizzes/${quizId}/host/${sessionId}`} className="text-sm text-white/50 hover:text-white">
+            Exit board
+          </Link>
+        </div>
       </div>
 
       <div className="min-h-0 flex-1">
@@ -182,6 +190,31 @@ function GameOver({ session }: { session: GameSession }) {
         ))}
       </ol>
     </Centered>
+  );
+}
+
+/**
+ * Buzzer sound on/off. Browsers block sound until the page is clicked once, so until then it says so;
+ * any click on the board (e.g. picking the first clue) unlocks it.
+ */
+function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () => void }) {
+  const [unlocked, setUnlocked] = useState(false);
+
+  useEffect(() => {
+    const unlock = () => {
+      unlockAudio();
+      // resume() is async; check again shortly after the click.
+      setTimeout(() => setUnlocked(audioUnlocked()), 100);
+    };
+    window.addEventListener("pointerdown", unlock);
+    return () => window.removeEventListener("pointerdown", unlock);
+  }, []);
+
+  const label = muted ? "🔇 Buzzer sound off" : unlocked ? "🔊 Buzzer sound on" : "🔈 Click anywhere to enable sound";
+  return (
+    <button type="button" onClick={onToggle} className={cn("text-sm hover:text-white", !muted && !unlocked ? "text-jeopardy-gold" : "text-white/50")}>
+      {label}
+    </button>
   );
 }
 

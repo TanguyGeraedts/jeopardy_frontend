@@ -26,6 +26,8 @@ export interface SessionTeam {
     memberIds: string[];
     /** Answered the open clue wrongly. */
     lockedOut: boolean;
+    /** Picked by the host, played on the board when the team buzzes. Null = automatic (see buzzerSoundFor). */
+    buzzerSound: string | null;
     /** A buzz from this team would count right now. */
     canBuzz: boolean;
 }
@@ -50,6 +52,9 @@ export interface SessionClue {
     revealed: boolean;
     dailyDouble: boolean;
     answer: string | null;
+    /** Shown with the question. VIDEO = a YouTube link or a video file; AUDIO = sound only (a file). Null = text only. */
+    mediaType: "IMAGE" | "VIDEO" | "AUDIO" | null;
+    mediaUrl: string | null;
 }
 
 export interface GameSession {

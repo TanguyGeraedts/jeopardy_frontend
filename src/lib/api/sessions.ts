@@ -27,4 +27,7 @@ export const hostControls = {
         apiFetch<GameSession>(GameplayPaths.teamScore(id, teamId), { method: "POST", body: { delta } }),
     setScore: (id: string, teamId: string, score: number) =>
         apiFetch<GameSession>(GameplayPaths.teamScore(id, teamId), { method: "POST", body: { score } }),
+    /** sound null = automatic. */
+    setBuzzerSound: (id: string, teamId: string, sound: string | null) =>
+        apiFetch<GameSession>(GameplayPaths.teamBuzzerSound(id, teamId), { method: "PUT", body: { sound } }),
 };

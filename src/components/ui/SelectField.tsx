@@ -4,10 +4,12 @@ import { fieldClass } from "./fieldStyles";
 interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label: string;
   options: readonly string[];
+  /** Text shown per option value. Missing = the value itself. */
+  optionLabels?: Readonly<Record<string, string>>;
   error?: string | null;
 }
 
-export function SelectField({ label, options, error, className, ...props }: SelectFieldProps) {
+export function SelectField({ label, options, optionLabels, error, className, ...props }: SelectFieldProps) {
   const id = useId();
   return (
     <div className="space-y-1">
@@ -17,7 +19,7 @@ export function SelectField({ label, options, error, className, ...props }: Sele
       <select id={id} aria-invalid={!!error} {...props} className={fieldClass(!!error, className)}>
         {options.map((o) => (
           <option key={o} value={o} className="text-black">
-            {o}
+            {optionLabels?.[o] ?? o}
           </option>
         ))}
       </select>

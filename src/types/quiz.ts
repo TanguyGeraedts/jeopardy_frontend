@@ -1,5 +1,5 @@
 /** creator/domain/model/AnswerType.java */
-export const ANSWER_TYPES = ["TEXT", "IMAGE", "VIDEO"] as const;
+export const ANSWER_TYPES = ["TEXT", "IMAGE", "VIDEO", "AUDIO"] as const;
 export type AnswerType = (typeof ANSWER_TYPES)[number];
 
 /** creator/adapter/in/web/dto/QuizResponse.java */

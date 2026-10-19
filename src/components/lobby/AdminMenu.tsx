@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useGameSession } from "@/hooks/useGameSession";
 import { errorMessage } from "@/lib/api/client";
 import { hostControls } from "@/lib/api/sessions";
+import { BUZZER_SOUND_IDS, BUZZER_SOUND_LABELS, buzzerSoundFor, playBuzzerSound } from "@/lib/buzzer-sounds";
 import { cn } from "@/lib/cn";
 import { sessionTeamStyle } from "@/lib/team-colors";
+import { ClueMedia } from "@/components/game/ClueMedia";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/Button";
@@ -155,6 +157,20 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
         <p className="text-sm text-white/50">Answer: <span className="font-semibold text-white">{clue.answer}</span></p>
       </div>
       <p className="text-lg font-semibold">{clue.question}</p>
+      {clue.mediaType === "IMAGE" && clue.mediaUrl && (
+        <div className="flex h-40 justify-start">
+          <ClueMedia type="IMAGE" url={clue.mediaUrl} label={clue.question ?? "Clue image"} className="w-auto rounded-md" />
+        </div>
+      )}
+      {/* Just a link: it plays on the board, a second player here would only double the sound. */}
+      {(clue.mediaType === "VIDEO" || clue.mediaType === "AUDIO") && clue.mediaUrl && (
+        <p className="truncate text-sm text-white/60">
+          {clue.mediaType === "VIDEO" ? "Video" : "Sound"} on the board:{" "}
+          <a href={clue.mediaUrl} target="_blank" rel="noopener noreferrer" className="text-sky-300 hover:underline">
+            {clue.mediaUrl}
+          </a>
+        </p>
+      )}
 
       <p className="text-sm text-white/70">
         {session.answeringPlayerId ? (
@@ -256,8 +272,46 @@ function TeamRow({
               Set
             </Button>
           </div>
+
+          <BuzzerSoundPicker sessionId={sessionId} team={team} index={index} busy={busy} run={run} />
         </div>
       </Card>
     </li>
+  );
+}
+
+/** Which sound the board plays when this team buzzes. ▶ previews it here, on the host's screen. */
+function BuzzerSoundPicker({ sessionId, team, index, busy, run }: { sessionId: string; team: SessionTeam; index: number; busy: boolean; run: Run }) {
+  const effective = buzzerSoundFor(team.buzzerSound, index);
+
+  return (
+    <div className="flex items-center gap-2">
+      <label htmlFor={`sound-${team.id}`} className="text-xs text-white/50">
+        Buzzer sound
+      </label>
+      <select
+        id={`sound-${team.id}`}
+        value={team.buzzerSound ?? ""}
+        disabled={busy}
+        onChange={(e) => {
+          const sound = e.target.value || null;
+          run(() => hostControls.setBuzzerSound(sessionId, team.id, sound));
+          playBuzzerSound(buzzerSoundFor(sound, index));
+        }}
+        className="min-w-0 flex-1 rounded-md border border-white/15 bg-black/20 px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+      >
+        <option value="" className="text-black">
+          Automatic ({BUZZER_SOUND_LABELS[buzzerSoundFor(null, index)]})
+        </option>
+        {BUZZER_SOUND_IDS.map((id) => (
+          <option key={id} value={id} className="text-black">
+            {BUZZER_SOUND_LABELS[id]}
+          </option>
+        ))}
+      </select>
+      <Button size="sm" variant="ghost" aria-label={`Play ${team.name}'s buzzer sound`} onClick={() => playBuzzerSound(effective)}>
+        ▶
+      </Button>
+    </div>
   );
 }

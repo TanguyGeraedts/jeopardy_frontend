@@ -6,6 +6,7 @@ import { CLUE_SECONDS } from "@/lib/game-state";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 import type { GameSession, SessionClue } from "@/types";
+import { ClueMedia } from "./ClueMedia";
 
 interface SessionClueViewProps {
   session: GameSession;
@@ -20,6 +21,7 @@ interface SessionClueViewProps {
 /** The open clue of a live session: question, who buzzed (in order), countdown and host controls. Mount with key={clue.id}. */
 export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }: SessionClueViewProps) {
   const [showAnswer, setShowAnswer] = useState(false);
+  const media = clue.mediaType && clue.mediaUrl ? { type: clue.mediaType, url: clue.mediaUrl } : null;
   const reading = session.state === "CLUE_READING";
   const answeringId = session.answeringPlayerId;
 
@@ -38,9 +40,17 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto text-center">
-        <p className="max-w-4xl text-[clamp(1.5rem,4vw,3.5rem)] font-bold leading-tight">{clue.question}</p>
-        {showAnswer && <p className="text-[clamp(1.25rem,3vw,2.5rem)] font-extrabold text-jeopardy-gold">{clue.answer}</p>}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 text-center">
+        <p className={cn("max-w-4xl shrink-0 font-bold leading-tight", media ? "text-[clamp(1.25rem,2.5vw,2.25rem)]" : "text-[clamp(1.5rem,4vw,3.5rem)]")}>
+          {clue.question}
+        </p>
+        {media && (
+          // Takes whatever height is left, so a photo or video is as big as the screen allows.
+          <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+            <ClueMedia type={media.type} url={media.url} label={clue.question ?? "Clue media"} />
+          </div>
+        )}
+        {showAnswer && <p className="shrink-0 text-[clamp(1.25rem,3vw,2.5rem)] font-extrabold text-jeopardy-gold">{clue.answer}</p>}
       </div>
 
       <div className="space-y-2 text-center" aria-live="polite">

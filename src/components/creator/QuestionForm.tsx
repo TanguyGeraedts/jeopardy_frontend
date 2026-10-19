@@ -2,8 +2,9 @@
 
 import { useState, type ReactNode } from "react";
 import { toApiError } from "@/lib/api/client";
-import { validateQuestion, type QuestionFormValues } from "@/lib/validation/quiz";
+import { HTTP_URL, validateQuestion, type QuestionFormValues } from "@/lib/validation/quiz";
 import { ANSWER_TYPES, type AnswerType, type QuestionRequest } from "@/types";
+import { ClueMedia } from "@/components/game/ClueMedia";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { CheckboxField } from "@/components/ui/CheckboxField";
@@ -30,6 +31,28 @@ interface QuestionFormProps {
   onSubmit: (body: QuestionRequest) => Promise<void>;
   onCancel: () => void;
 }
+
+/** The backend calls it answerType, but the media is shown with the question on the board. */
+/**
+ * "Sound only" (AUDIO) is hidden for now: it needs a direct file link, which is hard to get until uploads exist.
+ * The board and backend already support it; to turn it back on, offer ANSWER_TYPES again.
+ * A question that is already AUDIO keeps the option so the form still shows its real type.
+ */
+const mediaOptions = (current: AnswerType): readonly AnswerType[] =>
+  ANSWER_TYPES.filter((type) => type !== "AUDIO" || current === "AUDIO");
+
+const MEDIA_LABELS: Record<AnswerType, string> = {
+  TEXT: "None (text only)",
+  IMAGE: "Image",
+  VIDEO: "Video (YouTube or file)",
+  AUDIO: "Sound only (audio or video file)",
+};
+
+const URL_FIELD: Record<Exclude<AnswerType, "TEXT">, { label: string; placeholder: string }> = {
+  IMAGE: { label: "Image URL", placeholder: "https://…/photo.jpg" },
+  VIDEO: { label: "YouTube link or video file URL", placeholder: "https://www.youtube.com/watch?v=…" },
+  AUDIO: { label: "Audio or video file URL (not YouTube)", placeholder: "https://…/song.mp3" },
+};
 
 /** Shared by "add question" and "edit question". */
 export function QuestionForm({ initial, submitLabel, takenPoints, extraActions, onSubmit, onCancel }: QuestionFormProps) {
@@ -90,20 +113,29 @@ export function QuestionForm({ initial, submitLabel, takenPoints, extraActions, 
       <TextAreaField label="Question" value={values.questionText} onChange={(e) => set("questionText", e.target.value)} error={errors.questionText} />
       <TextField label="Answer" value={values.answerText} onChange={(e) => set("answerText", e.target.value)} error={errors.answerText} />
       <SelectField
-        label="Answer type"
-        options={ANSWER_TYPES}
+        label="Question media"
+        options={mediaOptions(initial.answerType ?? "TEXT")}
+        optionLabels={MEDIA_LABELS}
         value={values.answerType}
         onChange={(e) => set("answerType", e.target.value as AnswerType)}
         error={errors.answerType}
       />
       {values.answerType !== "TEXT" && (
-        <TextField
-          label={`${values.answerType === "IMAGE" ? "Image" : "Video"} URL`}
-          value={values.mediaUrl}
-          onChange={(e) => set("mediaUrl", e.target.value)}
-          error={errors.mediaUrl}
-          placeholder="https://..."
-        />
+        <>
+          <TextField
+            label={URL_FIELD[values.answerType].label}
+            value={values.mediaUrl}
+            onChange={(e) => set("mediaUrl", e.target.value)}
+            error={errors.mediaUrl}
+            placeholder={URL_FIELD[values.answerType].placeholder}
+          />
+          {/* Exactly what the board will show, so a broken link is caught here and not mid-game. */}
+          {HTTP_URL.test(values.mediaUrl.trim()) && (
+            <div className="flex h-48 justify-center rounded-md bg-black/30 p-2">
+              <ClueMedia key={values.mediaUrl.trim()} type={values.answerType} url={values.mediaUrl.trim()} label="Preview" />
+            </div>
+          )}
+        </>
       )}
       <CheckboxField label="Daily double" checked={dailyDouble} onChange={(e) => setDailyDouble(e.target.checked)} />
 

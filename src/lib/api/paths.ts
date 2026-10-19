@@ -41,6 +41,8 @@ export const GameplayPaths = {
   closeClue: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/clue/close`,
   /** POST { delta } or { score } */
   teamScore: (sessionId: string, teamId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/teams/${enc(teamId)}/score`,
+  /** PUT { sound } (null = automatic) */
+  teamBuzzerSound: (sessionId: string, teamId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/teams/${enc(teamId)}/buzzer-sound`,
 } as const;
 
 export const AuthPaths = {

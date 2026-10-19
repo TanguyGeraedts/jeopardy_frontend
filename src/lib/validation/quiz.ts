@@ -1,3 +1,4 @@
+import { youtubeEmbedUrl } from "@/lib/media";
 import type { AnswerType } from "@/types";
 
 /**
@@ -11,7 +12,7 @@ export const QUESTION_TEXT_MAX = 2000;
 export const ANSWER_TEXT_MAX = 1000;
 export const MEDIA_URL_MAX = 2048;
 
-const HTTP_URL = /^https?:\/\/\S+$/;
+export const HTTP_URL = /^https?:\/\/\S+$/;
 
 export const POINTS_ERROR = "Points must be a whole number greater than 0";
 export const isValidPoints = (points: number): boolean => Number.isInteger(points) && points > 0;
@@ -56,9 +57,13 @@ export function validateQuestion(values: QuestionFormValues): Record<string, str
 
   if (values.answerType !== "TEXT") {
     const url = values.mediaUrl.trim();
-    if (!url) errors.mediaUrl = `A media URL is required for ${values.answerType} answers`;
+    if (!url) errors.mediaUrl = `Paste the ${values.answerType.toLowerCase()} URL`;
     else if (url.length > MEDIA_URL_MAX) errors.mediaUrl = `Media URL must be at most ${MEDIA_URL_MAX} characters`;
     else if (!HTTP_URL.test(url)) errors.mediaUrl = "Media URL must be a valid http(s) URL";
+    // YouTube's embed rules don't allow playing only the sound of a video.
+    else if (values.answerType === "AUDIO" && youtubeEmbedUrl(url)) {
+      errors.mediaUrl = "YouTube can't be used as sound only. Use a direct audio/video file link, or pick Video.";
+    }
   }
 
   return errors;
