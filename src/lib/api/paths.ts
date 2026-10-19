@@ -28,6 +28,19 @@ export const GameplayPaths = {
   sessionById: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}`,
   /** POST = hand over the lobby's signed handoff token (public: the token is the credential). */
   handoff: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/handoff`,
+  /** GET = Server-Sent Events, a "session" event (public view, no answers) on every change. Public. */
+  events: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/events`,
+  /** POST = buzz. Public: the X-Player-Token header says who. */
+  buzz: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/buzz`,
+
+  // Host (session owner) controls
+  selectClue: (sessionId: string, clueId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/clues/${enc(clueId)}/select`,
+  openBuzzers: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/buzzers/open`,
+  /** POST { correct } */
+  judge: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/judge`,
+  closeClue: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/clue/close`,
+  /** POST { delta } or { score } */
+  teamScore: (sessionId: string, teamId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/teams/${enc(teamId)}/score`,
 } as const;
 
 export const AuthPaths = {

@@ -31,13 +31,15 @@ interface RequestOptions {
     /** Send the Bearer token. Default true; the mock-auth endpoint is public. */
     auth?: boolean;
     signal?: AbortSignal;
+    /** Extra headers, e.g. the player token for a buzz. */
+    headers?: Record<string, string>;
 }
 
 /** Low-level call: returns the parsed JSON body as-is (no ApiResponse unwrapping). */
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const { method = "GET", body, auth = true, signal } = options;
 
-    const headers: Record<string, string> = { Accept: "application/json" };
+    const headers: Record<string, string> = { Accept: "application/json", ...options.headers };
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (auth) {
         const token = tokenStore.get();

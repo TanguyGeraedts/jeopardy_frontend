@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo, useReducer, useState, type Dispatch } from "react";
+import { useState } from "react";
 import { useGameSession } from "@/hooks/useGameSession";
-import { adminReducer, canBuzz, initialAdmin, type AdminAction } from "@/lib/admin-state";
+import { errorMessage } from "@/lib/api/client";
+import { hostControls } from "@/lib/api/sessions";
 import { cn } from "@/lib/cn";
-import { teamColor, teamColourStyle } from "@/lib/team-colors";
+import { sessionTeamStyle } from "@/lib/team-colors";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/LinkButton";
-import { TEAM_COLOURS } from "@/types";
-import type { GameSession, GameTeam, TeamColour } from "@/types";
+import type { GameSession, SessionTeam } from "@/types";
 
 const STEPS = [-500, -100, 100, 500] as const;
 
@@ -27,47 +27,44 @@ const STATE_LABELS: Record<GameSession["state"], string> = {
   BOARD_SELECTION: "Game running · picking a clue",
   CLUE_READING: "Game running · reading a clue",
   BUZZER_OPEN: "Game running · buzzers open",
-  ANSWER_EVALUATION: "Game running · evaluating an answer",
+  ANSWER_EVALUATION: "Game running · someone is answering",
   GAME_OVER: "Game over",
 };
 
-const asColour = (value: string | null): TeamColour | undefined => TEAM_COLOURS.find((c) => c === value?.toUpperCase());
-
-/** Turns the backend's flat teams/players lists into the teams the admin screen renders. */
-function toGameTeams(session: GameSession): GameTeam[] {
-  return session.teams.map((team) => ({
-    id: team.id,
-    name: team.name,
-    players: session.players.filter((p) => p.teamId === team.id).map((p) => ({ id: p.id, name: p.name })),
-  }));
-}
+/** Runs a host action and shows the session it returns at once (everyone else gets it over the live stream). */
+type Run = (action: () => Promise<GameSession>) => void;
 
 /**
  * The host's control panel, meant for a second screen while the board runs on the shared one.
- * Lobby code, mode, teams and players come from the game session (polled). Score and buzzer controls
- * are still local state: each becomes a command to the game service later.
+ * Everything is read from the game session (live) and every button is a command to the backend.
  */
 export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
-  const sessionState = useGameSession(sessionId);
+  const { state, apply } = useGameSession(sessionId);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  if (sessionState.status === "loading") return <div className="flex justify-center py-20"><Spinner /></div>;
-  if (sessionState.status === "error") {
+  const run: Run = async (action) => {
+    setBusy(true);
+    setError(null);
+    try {
+      apply(await action());
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (state.status === "loading") return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <Alert title={sessionState.error.title}>{sessionState.error.message}</Alert>
+        <Alert title={state.error.title}>{state.error.message}</Alert>
         <LinkButton href={`/quizzes/${quizId}/host`} variant="ghost">Back to lobby settings</LinkButton>
       </div>
     );
   }
-  const { session } = sessionState;
-
-  return <AdminPanel key={session.teams.map((t) => t.id).join(",")} quizId={quizId} quizName={quizName} session={session} />;
-}
-
-function AdminPanel({ quizId, quizName, session }: { quizId: string; quizName: string; session: GameSession }) {
-  const teams = useMemo(() => toGameTeams(session), [session]);
-  // Seeded from the server's scores. The panel remounts (see key above) when the set of teams changes, e.g. after the lobby starts.
-  const [admin, dispatch] = useReducer(adminReducer, teams, (t) => ({ ...initialAdmin(t), scores: Object.fromEntries(session.teams.map((team) => [team.id, team.score])) }));
+  const { session } = state;
   const solo = session.mode === "SOLO";
   const started = session.state !== "LOBBY";
 
@@ -82,13 +79,15 @@ function AdminPanel({ quizId, quizName, session }: { quizId: string; quizName: s
           <LinkButton href={`/quizzes/${quizId}/host`} variant="ghost">
             New lobby
           </LinkButton>
-          <LinkButton href={`/quizzes/${quizId}/play`} target="_blank" rel="noopener noreferrer">
+          <LinkButton href={`/quizzes/${quizId}/host/${sessionId}/board`} target="_blank" rel="noopener noreferrer">
             Open game board &#8599;
           </LinkButton>
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      {error && <Alert title="That didn't work">{error}</Alert>}
+
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-1">
           <p className="text-sm text-white/50">Lobby code</p>
           <p className="font-mono text-3xl font-extrabold tracking-widest text-jeopardy-gold">{session.lobbyCode}</p>
@@ -98,26 +97,32 @@ function AdminPanel({ quizId, quizName, session }: { quizId: string; quizName: s
           <p className="text-sm text-white/50">Mode</p>
           <p className="text-xl font-bold">{solo ? "Solo" : session.teams.length > 0 ? `Teams · ${session.teams.length}` : "Teams"}</p>
           <p className="text-sm text-white/50">
-            {started ? `${session.players.length} player${session.players.length === 1 ? "" : "s"} joined` : "Waiting for players"} · {session.clues.length} clues on the board
+            {started ? `${session.players.length} player${session.players.length === 1 ? "" : "s"} joined` : "Waiting for players"} · {session.clues.filter((c) => !c.revealed).length}/{session.clues.length} clues left
           </p>
         </Card>
-        <Card className={cn("space-y-3", admin.allBuzzersBlocked && "border-red-400/60 bg-red-500/10")}>
-          <p className="text-sm text-white/50">Buzzers</p>
-          <p className="text-xl font-bold">{admin.allBuzzersBlocked ? "All blocked" : "Open"}</p>
-          <Button variant={admin.allBuzzersBlocked ? "primary" : "danger"} onClick={() => dispatch({ type: "toggleAll" })}>
-            {admin.allBuzzersBlocked ? "Unblock all buzzers" : "Block all buzzers"}
-          </Button>
-        </Card>
       </div>
+
+      {session.activeClueId && <CurrentClue session={session} sessionId={sessionId} busy={busy} run={run} />}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold">{solo ? "Players" : "Teams"}</h2>
-          <Button size="sm" variant="ghost" onClick={() => dispatch({ type: "resetScores" })}>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy || session.teams.length === 0}
+            onClick={() =>
+              run(async () => {
+                let latest = session;
+                for (const team of session.teams) latest = await hostControls.setScore(sessionId, team.id, 0);
+                return latest;
+              })
+            }
+          >
             Reset all scores
           </Button>
         </div>
-        {teams.length === 0 ? (
+        {session.teams.length === 0 ? (
           <Card>
             <p className="text-white/70">
               Nobody is here yet. Players join with code <span className="font-mono font-bold text-jeopardy-gold">{session.lobbyCode}</span>; the first one to join is the lobby host and starts the game. Teams and players show up here once it starts.
@@ -125,8 +130,8 @@ function AdminPanel({ quizId, quizName, session }: { quizId: string; quizName: s
           </Card>
         ) : (
           <ul className="grid gap-3 md:grid-cols-2">
-            {teams.map((team, index) => (
-              <TeamRow key={team.id} team={team} index={index} colour={asColour(session.teams[index]?.colour ?? null)} solo={solo} score={admin.scores[team.id] ?? 0} buzzable={canBuzz(admin, team.id)} globallyBlocked={admin.allBuzzersBlocked} dispatch={dispatch} />
+            {session.teams.map((team, index) => (
+              <TeamRow key={team.id} session={session} sessionId={sessionId} team={team} index={index} solo={solo} busy={busy} run={run} />
             ))}
           </ul>
         )}
@@ -135,51 +140,103 @@ function AdminPanel({ quizId, quizName, session }: { quizId: string; quizName: s
   );
 }
 
+/** The open clue: who is answering and who is in line, with the same controls as the board. */
+function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; sessionId: string; busy: boolean; run: Run }) {
+  const clue = session.clues.find((c) => c.id === session.activeClueId);
+  const nameOf = (playerId: string) => session.players.find((p) => p.id === playerId)?.name ?? "?";
+  if (!clue) return null;
+
+  return (
+    <Card className="space-y-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm uppercase tracking-wide text-white/50">
+          {clue.category} · <span className="text-jeopardy-gold">{clue.value}</span>
+        </p>
+        <p className="text-sm text-white/50">Answer: <span className="font-semibold text-white">{clue.answer}</span></p>
+      </div>
+      <p className="text-lg font-semibold">{clue.question}</p>
+
+      <p className="text-sm text-white/70">
+        {session.answeringPlayerId ? (
+          <>
+            <span className="font-bold text-jeopardy-gold">{nameOf(session.answeringPlayerId)}</span> is answering.
+          </>
+        ) : session.state === "CLUE_READING" ? (
+          "Buzzers closed while you read."
+        ) : (
+          "Buzzers open, nobody has buzzed."
+        )}
+        {session.buzzes.length > 1 && <> In line: {session.buzzes.slice(1).map((b) => nameOf(b.playerId)).join(", ")}.</>}
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        {session.state === "CLUE_READING" && (
+          <Button disabled={busy} onClick={() => run(() => hostControls.openBuzzers(sessionId))}>
+            Open buzzers
+          </Button>
+        )}
+        {session.state === "ANSWER_EVALUATION" && (
+          <>
+            <Button disabled={busy} className="bg-emerald-500 text-white hover:bg-emerald-400" onClick={() => run(() => hostControls.judge(sessionId, true))}>
+              ✓ Correct
+            </Button>
+            <Button variant="danger" disabled={busy} onClick={() => run(() => hostControls.judge(sessionId, false))}>
+              ✗ Wrong
+            </Button>
+          </>
+        )}
+        <Button variant="ghost" disabled={busy} onClick={() => run(() => hostControls.closeClue(sessionId))}>
+          Close clue (no points)
+        </Button>
+      </div>
+    </Card>
+  );
+}
+
 function TeamRow({
+  session,
+  sessionId,
   team,
   index,
-  colour,
   solo,
-  score,
-  buzzable,
-  globallyBlocked,
-  dispatch,
+  busy,
+  run,
 }: {
-  team: GameTeam;
+  session: GameSession;
+  sessionId: string;
+  team: SessionTeam;
   index: number;
-  colour: TeamColour | undefined;
   solo: boolean;
-  score: number;
-  buzzable: boolean;
-  globallyBlocked: boolean;
-  dispatch: Dispatch<AdminAction>;
+  busy: boolean;
+  run: Run;
 }) {
   const [draft, setDraft] = useState("");
-  const bar = colour ? teamColourStyle(colour).bar : teamColor(index).bar;
+  const members = session.players.filter((p) => p.teamId === team.id);
 
   function applyDraft() {
     const value = Number(draft);
     if (draft.trim() === "" || !Number.isInteger(value)) return;
-    dispatch({ type: "setScore", teamId: team.id, score: value });
+    run(() => hostControls.setScore(sessionId, team.id, value));
     setDraft("");
   }
 
   return (
     <li>
       <Card className="space-y-3 overflow-hidden p-0">
-        <div className={cn("h-1.5", bar)} />
+        <div className={cn("h-1.5", sessionTeamStyle(team.colour, index).bar)} />
         <div className="space-y-3 px-4 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate font-semibold">{team.name}</p>
-              {!solo && <p className="truncate text-xs text-white/50">{team.players.map((p) => p.name).join(" · ") || "No players yet"}</p>}
+              {!solo && <p className="truncate text-xs text-white/50">{members.map((p) => p.name).join(" · ") || "No players yet"}</p>}
+              {team.lockedOut && <p className="text-xs font-bold uppercase text-red-300">Locked out this clue</p>}
             </div>
-            <p className={cn("text-3xl font-extrabold tabular-nums", score < 0 && "text-red-400")}>{score}</p>
+            <p className={cn("text-3xl font-extrabold tabular-nums", team.score < 0 && "text-red-400")}>{team.score}</p>
           </div>
 
           <div className="flex flex-wrap gap-1.5">
             {STEPS.map((step) => (
-              <Button key={step} size="sm" variant="secondary" onClick={() => dispatch({ type: "adjust", teamId: team.id, delta: step })}>
+              <Button key={step} size="sm" variant="secondary" disabled={busy} onClick={() => run(() => hostControls.adjustScore(sessionId, team.id, step))}>
                 {step > 0 ? `+${step}` : step}
               </Button>
             ))}
@@ -195,17 +252,8 @@ function TeamRow({
               onKeyDown={(e) => e.key === "Enter" && applyDraft()}
               className="w-40 rounded-md border border-white/15 bg-black/20 px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
             />
-            <Button size="sm" variant="secondary" onClick={applyDraft}>
+            <Button size="sm" variant="secondary" disabled={busy} onClick={applyDraft}>
               Set
-            </Button>
-            <Button
-              size="sm"
-              variant={buzzable ? "ghost" : "danger"}
-              disabled={globallyBlocked}
-              className="ml-auto"
-              onClick={() => dispatch({ type: "toggleTeam", teamId: team.id })}
-            >
-              {buzzable ? "Block buzzer" : globallyBlocked ? "Blocked (all)" : "Unblock buzzer"}
             </Button>
           </div>
         </div>

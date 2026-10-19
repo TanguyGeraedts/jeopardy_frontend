@@ -1,4 +1,4 @@
-import type { TeamColour } from "@/types";
+import { TEAM_COLOURS, type TeamColour } from "@/types";
 
 type ColourStyle = {
     /** Filled button. */
@@ -30,3 +30,13 @@ const BY_POSITION = Object.values(TEAM_COLOUR_STYLES);
 
 /** One colour per team, by position (used until teams carry their own colour). Same order as the lobby's colour list. */
 export const teamColor = (teamIndex: number) => BY_POSITION[teamIndex % BY_POSITION.length];
+
+/** The backend's colour string (e.g. "red") as a lobby colour, if it is one. */
+export const asTeamColour = (value: string | null | undefined): TeamColour | undefined =>
+    TEAM_COLOURS.find((c) => c === value?.toUpperCase());
+
+/** A game-session team's colour: its own lobby colour, else one by position. */
+export const sessionTeamStyle = (colour: string | null | undefined, teamIndex: number) => {
+    const own = asTeamColour(colour);
+    return own ? teamColourStyle(own) : teamColor(teamIndex);
+};

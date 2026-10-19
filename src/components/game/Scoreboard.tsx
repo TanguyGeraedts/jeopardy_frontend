@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { teamColor } from "@/lib/team-colors";
+import { sessionTeamStyle } from "@/lib/team-colors";
 import type { GameTeam } from "@/types";
 
 interface ClueStatus {
@@ -14,12 +14,14 @@ interface ClueStatus {
 interface ScoreboardProps {
   teams: GameTeam[];
   scores: Record<string, number>;
+  /** Each team's lobby colour (same order as teams). Missing = a colour by position. */
+  colours?: readonly (string | null)[];
   /** Pass while a clue is open to show who is answering and the ✓ / ✗ buttons. */
   clue?: ClueStatus;
 }
 
 /** Team cards along the bottom: name, members, score. Leader is outlined in gold. */
-export function Scoreboard({ teams, scores, clue }: ScoreboardProps) {
+export function Scoreboard({ teams, scores, colours, clue }: ScoreboardProps) {
   if (teams.length === 0) return <p className="py-3 text-center text-white/50">Waiting for teams to join&hellip;</p>;
   const top = Math.max(...teams.map((t) => scores[t.id] ?? 0));
 
@@ -42,7 +44,7 @@ export function Scoreboard({ teams, scores, clue }: ScoreboardProps) {
               locked && "opacity-50",
             )}
           >
-            <div className={cn("h-1.5", teamColor(index).bar)} />
+            <div className={cn("h-1.5", sessionTeamStyle(colours?.[index], index).bar)} />
             <div className="px-3 py-2">
               <p className="truncate text-sm font-semibold text-white/90">{team.name}</p>
               {!solo && <p className="truncate text-xs text-white/50">{team.players.map((p) => p.name).join(" · ")}</p>}
