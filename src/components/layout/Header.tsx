@@ -23,7 +23,7 @@ export function Header() {
           <UserButton />
         </Show>
         <Show when="signed-out">
-          <SignInButton>
+          <SignInButton mode="modal">
             <Button variant="ghost">Sign in</Button>
           </SignInButton>
         </Show>

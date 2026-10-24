@@ -1,3 +1,5 @@
+/* Clerk's styles (appearance.cssLayerName = "clerk") sit below Tailwind's utilities, so our classes override them. */
+@layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 
 @theme inline {
