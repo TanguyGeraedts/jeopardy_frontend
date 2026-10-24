@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuiz } from "@/hooks/useQuiz";
@@ -8,6 +7,7 @@ import { errorMessage } from "@/lib/api/client";
 import { createGameSession } from "@/lib/api/sessions";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
+import { BackLink } from "@/components/ui/BackLink";
 import type { CreateGameSessionRequest, LobbyForm, LobbyRequest } from "@/types";
 import { LobbySetup } from "./LobbySetup";
 
@@ -51,9 +51,7 @@ export function HostScreen({ quizId }: { quizId: string }) {
 
   return (
     <div className="space-y-6">
-      <Link href={`/quizzes/${quiz.id}`} className="text-sm text-white/50 hover:text-white">
-        &lsaquo; Back to quiz
-      </Link>
+      <BackLink href={`/quizzes/${quiz.id}`}>Back to quiz</BackLink>
       <div>
         <h1 className="font-display text-6xl tracking-wide">{quiz.name}</h1>
         <p className="mt-1 text-chalk/60">Set up the lobby before you play.</p>

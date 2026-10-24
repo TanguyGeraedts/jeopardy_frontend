@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Play } from "@phosphor-icons/react";
 import { useIsOwner } from "@/hooks/useIsOwner";
 import { useQuiz } from "@/hooks/useQuiz";
 import { countQuestions } from "@/lib/quiz-state";
@@ -8,6 +8,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { Spinner } from "@/components/ui/Spinner";
+import { BackLink } from "@/components/ui/BackLink";
 import { DeleteQuizButton } from "@/components/creator/DeleteQuizButton";
 
 const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
@@ -29,9 +30,7 @@ export function QuizOverview({ quizId }: { quizId: string }) {
 
   return (
     <div className="space-y-8">
-      <Link href="/creator" className="text-sm text-chalk/60 hover:text-chalk">
-        &lsaquo; My quizzes
-      </Link>
+      <BackLink href="/creator">My quizzes</BackLink>
 
       <div>
         <h1 className="font-display text-6xl tracking-wide">{quiz.name}</h1>
@@ -43,9 +42,9 @@ export function QuizOverview({ quizId }: { quizId: string }) {
 
       <div className="flex flex-wrap items-start gap-3">
         {playable ? (
-          <LinkButton href={`/quizzes/${quiz.id}/host`}>&#9654; Play</LinkButton>
+          <LinkButton href={`/quizzes/${quiz.id}/host`}><Play weight="fill" aria-hidden />Play</LinkButton>
         ) : (
-          <Button disabled>&#9654; Play</Button>
+          <Button disabled><Play weight="fill" aria-hidden />Play</Button>
         )}
         {owner.isOwner && (
           <>

@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 import { Spinner } from "./Spinner";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success";
 export type ButtonSize = "md" | "sm";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -17,6 +17,8 @@ const variants: Record<ButtonVariant, string> = {
   secondary: "bg-white/[0.08] text-chalk hover:bg-white/[0.14]",
   ghost: "text-chalk/70 hover:text-chalk hover:bg-white/[0.08]",
   danger: "bg-buzzer-red text-white hover:brightness-110",
+  // Judging a correct answer (pairs with danger for a wrong one).
+  success: "bg-emerald-600 text-white hover:brightness-110",
 };
 
 const sizes: Record<ButtonSize, string> = {

@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "@phosphor-icons/react";
 import { useState } from "react";
 import { cn } from "@/lib/cn";
 import {
@@ -148,7 +149,7 @@ export function LobbySetup({ initial, onCreate, busy = false }: LobbySetupProps)
                                                     taken && "opacity-30 hover:opacity-70",
                                                 )}
                                             >
-                                                {selected && <span className="text-sm font-black text-white drop-shadow">&#10003;</span>}
+                                                {selected && <Check weight="bold" className="size-5 text-white drop-shadow" aria-hidden />}
                                             </button>
                                         );
                                     })}

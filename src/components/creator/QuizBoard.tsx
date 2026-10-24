@@ -34,7 +34,7 @@ export function QuizBoard({ quiz }: { quiz: Quiz }) {
   return (
     <div className="space-y-3">
       <p className="text-sm text-white/50">
-        Edit a category name or point value in place. Click a tile to edit it, or a + to add a question. ✕ beside a point value removes that row.
+        Edit a category name or point value in place. Click a tile to edit it, or a + to add a question. The cross next to a point value removes that whole row.
       </p>
       {quiz.categories.length === 0 && (
         <p className="rounded-lg border border-dashed border-white/15 p-6 text-center text-white/50">

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { CornersIn, CornersOut, SignOut, SpeakerHigh, SpeakerNone, SpeakerX } from "@phosphor-icons/react";
 import { useBuzzerSounds } from "@/hooks/useBuzzerSounds";
 import { useGameSession } from "@/hooks/useGameSession";
 import { errorMessage } from "@/lib/api/client";
@@ -63,7 +64,8 @@ export function SessionGame({ quizId, sessionId }: { quizId: string; sessionId: 
         <div className="flex items-center gap-5">
           <FullscreenToggle />
           <SoundToggle muted={muted} onToggle={() => setMuted((m) => !m)} />
-          <Link href={`/quizzes/${quizId}/host/${sessionId}`} className="hover:text-chalk">
+          <Link href={`/quizzes/${quizId}/host/${sessionId}`} className={STRIP_ITEM}>
+            <SignOut weight="bold" aria-hidden />
             Exit board
           </Link>
         </div>
@@ -215,7 +217,11 @@ function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () => void
     return () => window.removeEventListener("pointerdown", unlockAudio);
   }, []);
 
-  const label = muted ? "🔇 Buzzer sound off" : unlocked ? "🔊 Buzzer sound on" : "🔈 Click anywhere to enable sound";
+  const [Icon, label] = muted
+    ? [SpeakerX, "Buzzer sound off"]
+    : unlocked
+      ? [SpeakerHigh, "Buzzer sound on"]
+      : [SpeakerNone, "Click anywhere to enable sound"];
   return (
     <button
       type="button"
@@ -224,8 +230,9 @@ function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () => void
         if (clickWasUnlock.current && !muted) return; // this click enabled sound; don't turn it off again
         onToggle();
       }}
-      className={cn("hover:text-chalk", !muted && !unlocked && "font-semibold text-chalk")}
+      className={cn(STRIP_ITEM, !muted && !unlocked && "font-semibold text-chalk")}
     >
+      <Icon weight="fill" aria-hidden />
       {label}
     </button>
   );
@@ -246,12 +253,16 @@ function FullscreenToggle() {
     <button
       type="button"
       onClick={() => (fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})}
-      className="hover:text-chalk"
+      className={STRIP_ITEM}
     >
+      {fullscreen ? <CornersIn weight="bold" aria-hidden /> : <CornersOut weight="bold" aria-hidden />}
       {fullscreen ? "Exit fullscreen" : "Fullscreen"}
     </button>
   );
 }
+
+/** One item in the board's top strip: a small icon before quiet text. */
+const STRIP_ITEM = "inline-flex items-center gap-1.5 whitespace-nowrap hover:text-chalk";
 
 function Centered({ children }: { children: ReactNode }) {
   return <div className="flex h-full flex-col items-center justify-center gap-[1vw] rounded-sm bg-board-blue p-[2vw] text-center">{children}</div>;

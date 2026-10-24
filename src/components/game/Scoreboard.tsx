@@ -1,3 +1,4 @@
+import { Check, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
 import { sessionTeamStyle } from "@/lib/team-colors";
 import type { GameTeam } from "@/types";
@@ -56,11 +57,11 @@ export function Scoreboard({ teams, scores, colours, clue }: ScoreboardProps) {
               {locked && <p className="text-[clamp(0.75rem,1vw,1.05rem)] font-semibold">Locked out</p>}
               {canJudge && clue && (
                 <div className="mt-[0.4vw] flex justify-center gap-2">
-                  <button type="button" aria-label={`${team.name} answered correctly`} onClick={() => clue.onCorrect(team.id)} className="min-h-9 flex-1 rounded-sm bg-emerald-600 font-bold text-white hover:brightness-110">
-                    ✓
+                  <button type="button" aria-label={`${team.name} answered correctly`} onClick={() => clue.onCorrect(team.id)} className="grid min-h-9 flex-1 place-items-center rounded-sm bg-emerald-600 text-white hover:brightness-110">
+                    <Check weight="bold" className="size-5" aria-hidden />
                   </button>
-                  <button type="button" aria-label={`${team.name} answered wrongly`} onClick={() => clue.onWrong(team.id)} className="min-h-9 flex-1 rounded-sm bg-buzzer-red font-bold text-white hover:brightness-110">
-                    ✗
+                  <button type="button" aria-label={`${team.name} answered wrongly`} onClick={() => clue.onWrong(team.id)} className="grid min-h-9 flex-1 place-items-center rounded-sm bg-buzzer-red text-white hover:brightness-110">
+                    <X weight="bold" className="size-5" aria-hidden />
                   </button>
                 </div>
               )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowSquareOut, Check, Play, X } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useGameSession } from "@/hooks/useGameSession";
 import { errorMessage } from "@/lib/api/client";
@@ -82,7 +83,7 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
             New lobby
           </LinkButton>
           <LinkButton href={`/quizzes/${quizId}/host/${sessionId}/board`} target="_blank" rel="noopener noreferrer">
-            Open game board &#8599;
+            Open game board<ArrowSquareOut weight="bold" aria-hidden />
           </LinkButton>
         </div>
       </div>
@@ -194,11 +195,11 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
         )}
         {session.state === "ANSWER_EVALUATION" && (
           <>
-            <Button disabled={busy} className="bg-emerald-500 text-white hover:bg-emerald-400" onClick={() => run(() => hostControls.judge(sessionId, true))}>
-              ✓ Correct
+            <Button variant="success" disabled={busy} onClick={() => run(() => hostControls.judge(sessionId, true))}>
+              <Check weight="bold" aria-hidden />Correct
             </Button>
             <Button variant="danger" disabled={busy} onClick={() => run(() => hostControls.judge(sessionId, false))}>
-              ✗ Wrong
+              <X weight="bold" aria-hidden />Wrong
             </Button>
           </>
         )}
@@ -281,7 +282,7 @@ function TeamRow({
   );
 }
 
-/** Which sound the board plays when this team buzzes. ▶ previews it here, on the host's screen. */
+/** Which sound the board plays when this team buzzes. The play button previews it here, on the host's screen. */
 function BuzzerSoundPicker({ sessionId, team, index, busy, run }: { sessionId: string; team: SessionTeam; index: number; busy: boolean; run: Run }) {
   const effective = buzzerSoundFor(team.buzzerSound, index);
 
@@ -311,7 +312,7 @@ function BuzzerSoundPicker({ sessionId, team, index, busy, run }: { sessionId: s
         ))}
       </select>
       <Button size="sm" variant="ghost" aria-label={`Play ${team.name}'s buzzer sound`} onClick={() => playBuzzerSound(effective)}>
-        ▶
+        <Play weight="fill" aria-hidden />
       </Button>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 
 interface RowHeaderProps {
@@ -48,9 +49,9 @@ export function RowHeader({ points, onChange, onRemove }: RowHeaderProps) {
         type="button"
         aria-label={`Remove ${points} point row`}
         onClick={onRemove}
-        className="h-11 w-8 shrink-0 text-chalk/50 transition hover:text-buzzer-red"
+        className="grid h-11 w-8 shrink-0 place-items-center text-chalk/50 transition hover:text-buzzer-red"
       >
-        ✕
+        <X weight="bold" aria-hidden />
       </button>
     </div>
   );

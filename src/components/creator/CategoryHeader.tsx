@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "@phosphor-icons/react";
 import { useRef, useState } from "react";
 import { CATEGORY_NAME_MAX } from "@/lib/validation/quiz";
 import type { Category } from "@/types";
@@ -49,9 +50,9 @@ export function CategoryHeader({ category, onRename, onRemove }: CategoryHeaderP
         type="button"
         aria-label={`Delete category ${category.name}`}
         onClick={() => onRemove(category)}
-        className="h-11 w-8 shrink-0 text-white/70 transition hover:text-white"
+        className="grid h-11 w-8 shrink-0 place-items-center text-chalk/70 transition hover:text-chalk"
       >
-        ✕
+        <X weight="bold" aria-hidden />
       </button>
     </div>
   );
