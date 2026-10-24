@@ -26,10 +26,10 @@ interface AdminMenuProps {
 
 const STATE_LABELS: Record<GameSession["state"], string> = {
   LOBBY: "Waiting for the lobby host to start",
-  BOARD_SELECTION: "Game running · picking a clue",
-  CLUE_READING: "Game running · reading a clue",
-  BUZZER_OPEN: "Game running · buzzers open",
-  ANSWER_EVALUATION: "Game running · someone is answering",
+  BOARD_SELECTION: "Picking a clue",
+  CLUE_READING: "Reading a clue",
+  BUZZER_OPEN: "Buzzers are open",
+  ANSWER_EVALUATION: "Someone is answering",
   GAME_OVER: "Game over",
 };
 
@@ -74,8 +74,8 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0">
-          <h1 className="truncate text-3xl font-extrabold">{quizName}</h1>
-          <p className="text-white/50">Host controls</p>
+          <h1 className="truncate font-display text-6xl tracking-wide">{quizName}</h1>
+          <p className="text-chalk/60">Host controls</p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <LinkButton href={`/quizzes/${quizId}/host`} variant="ghost">
@@ -91,15 +91,16 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-1">
-          <p className="text-sm text-white/50">Lobby code</p>
-          <p className="font-mono text-3xl font-extrabold tracking-widest text-jeopardy-gold">{session.lobbyCode}</p>
-          <p className="text-sm text-white/50">{STATE_LABELS[session.state]}</p>
+          <p className="text-sm text-chalk/60">Lobby code</p>
+          <p className="font-display text-6xl leading-none tracking-[0.12em] text-gold">{session.lobbyCode}</p>
+          <p className="text-sm text-chalk/60">{STATE_LABELS[session.state]}</p>
         </Card>
         <Card className="space-y-1">
-          <p className="text-sm text-white/50">Mode</p>
-          <p className="text-xl font-bold">{solo ? "Solo" : session.teams.length > 0 ? `Teams · ${session.teams.length}` : "Teams"}</p>
-          <p className="text-sm text-white/50">
-            {started ? `${session.players.length} player${session.players.length === 1 ? "" : "s"} joined` : "Waiting for players"} · {session.clues.filter((c) => !c.revealed).length}/{session.clues.length} clues left
+          <p className="text-sm text-chalk/60">Mode</p>
+          <p className="font-display text-4xl tracking-wide">{solo ? "Solo" : session.teams.length > 0 ? `${session.teams.length} teams` : "Teams"}</p>
+          <p className="text-sm text-chalk/60">
+            {started ? `${session.players.length} player${session.players.length === 1 ? "" : "s"} joined` : "Waiting for players"}.{" "}
+            {session.clues.filter((c) => !c.revealed).length} of {session.clues.length} clues left.
           </p>
         </Card>
       </div>
@@ -108,7 +109,7 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">{solo ? "Players" : "Teams"}</h2>
+          <h2 className="text-lg font-semibold">{solo ? "Players" : "Teams"}</h2>
           <Button
             size="sm"
             variant="ghost"
@@ -127,7 +128,7 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
         {session.teams.length === 0 ? (
           <Card>
             <p className="text-white/70">
-              Nobody is here yet. Players join with code <span className="font-mono font-bold text-jeopardy-gold">{session.lobbyCode}</span>; the first one to join is the lobby host and starts the game. Teams and players show up here once it starts.
+              Nobody is here yet. Players join with code <span className="font-bold tracking-wider text-gold">{session.lobbyCode}</span>; the first one to join is the lobby host and starts the game. Teams and players show up here once it starts.
             </p>
           </Card>
         ) : (
@@ -151,12 +152,12 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
   return (
     <Card className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-sm uppercase tracking-wide text-white/50">
-          {clue.category} · <span className="text-jeopardy-gold">{clue.value}</span>
+        <p className="font-display text-2xl uppercase tracking-wide">
+          {clue.category} <span className="text-gold">{clue.value}</span>
         </p>
-        <p className="text-sm text-white/50">Answer: <span className="font-semibold text-white">{clue.answer}</span></p>
+        <p className="text-sm text-chalk/60">Answer: <span className="font-semibold text-chalk">{clue.answer}</span></p>
       </div>
-      <p className="text-lg font-semibold">{clue.question}</p>
+      <p className="font-serif text-lg font-bold uppercase leading-snug">{clue.question}</p>
       {clue.mediaType === "IMAGE" && clue.mediaUrl && (
         <div className="flex h-40 justify-start">
           <ClueMedia type="IMAGE" url={clue.mediaUrl} label={clue.question ?? "Clue image"} className="w-auto rounded-md" />
@@ -175,7 +176,7 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
       <p className="text-sm text-white/70">
         {session.answeringPlayerId ? (
           <>
-            <span className="font-bold text-jeopardy-gold">{nameOf(session.answeringPlayerId)}</span> is answering.
+            <span className="font-bold text-chalk">{nameOf(session.answeringPlayerId)}</span> is answering.
           </>
         ) : session.state === "CLUE_READING" ? (
           "Buzzers closed while you read."
@@ -244,10 +245,10 @@ function TeamRow({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate font-semibold">{team.name}</p>
-              {!solo && <p className="truncate text-xs text-white/50">{members.map((p) => p.name).join(" · ") || "No players yet"}</p>}
-              {team.lockedOut && <p className="text-xs font-bold uppercase text-red-300">Locked out this clue</p>}
+              {!solo && <p className="truncate text-xs text-chalk/60">{members.map((p) => p.name).join(", ") || "No players yet"}</p>}
+              {team.lockedOut && <p className="text-xs font-semibold text-buzzer-red">Locked out this clue</p>}
             </div>
-            <p className={cn("text-3xl font-extrabold tabular-nums", team.score < 0 && "text-red-400")}>{team.score}</p>
+            <p className={cn("font-display text-5xl leading-none tabular-nums", team.score < 0 && "text-buzzer-red")}>{team.score}</p>
           </div>
 
           <div className="flex flex-wrap gap-1.5">

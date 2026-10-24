@@ -88,8 +88,8 @@ export function PlayerGame({ gameSessionId }: { gameSessionId: string }) {
 
   return (
     <div className="mx-auto flex min-h-[80vh] max-w-md flex-col gap-5 py-6 text-center">
-      {handoff === "sending" && <p className="text-sm text-white/60">Starting the game&hellip;</p>}
-      {handoff === "error" && <p role="alert" className="text-sm text-red-300">Could not start the game: {handoffError}</p>}
+      {handoff === "sending" && <p className="text-sm text-chalk/60">Starting the game&hellip;</p>}
+      {handoff === "error" && <p role="alert" className="text-sm text-buzzer-red">Could not start the game: {handoffError}</p>}
 
       {!session ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-white/60">
@@ -158,7 +158,7 @@ function PlayerScreen({
   if (!playerToken || !me) {
     return (
       <Card className="space-y-2">
-        <p className="text-lg font-bold">You can watch, but not buzz</p>
+        <p className="font-display text-4xl tracking-wide">You can watch, but not buzz</p>
         <p className="text-sm text-white/60">
           {session.state === "LOBBY"
             ? "Waiting for the game to start…"
@@ -176,14 +176,14 @@ function PlayerScreen({
         <div className={cn("h-2", style.bar)} />
         <div className="flex items-center justify-between gap-3 px-4 py-3 text-left">
           <div className="min-w-0">
-            <p className="truncate text-lg font-bold">{me.name}</p>
-            {!solo && team && <p className="truncate text-sm text-white/60">{team.name}</p>}
+            <p className="truncate text-lg font-semibold">{me.name}</p>
+            {!solo && team && <p className="truncate text-sm text-chalk/60">{team.name}</p>}
           </div>
-          <p className={cn("text-4xl font-extrabold tabular-nums", (team?.score ?? 0) < 0 && "text-red-400")}>{team?.score ?? 0}</p>
+          <p className={cn("font-display text-6xl leading-none tabular-nums", (team?.score ?? 0) < 0 && "text-buzzer-red")}>{team?.score ?? 0}</p>
         </div>
       </Card>
 
-      <p aria-live="polite" className={cn("min-h-14 text-xl font-bold", answering ? "text-jeopardy-gold" : "text-white/80")}>
+      <p aria-live="polite" className={cn("min-h-14 text-xl font-semibold", answering ? "text-gold" : "text-chalk/85")}>
         {statusText(session, playerId, team, place, answering)}
       </p>
 
@@ -195,18 +195,22 @@ function PlayerScreen({
           e.preventDefault();
           press();
         }}
+        // The show's buzzer, but on your phone: one big red button. Gold when it's your turn to answer.
         className={cn(
-          "mx-auto grid aspect-square w-full max-w-xs select-none place-items-center rounded-full text-5xl font-black tracking-wider shadow-2xl transition",
-          canBuzz ? "bg-red-600 text-white active:scale-95 active:bg-red-500" : "bg-white/10 text-white/30",
-          answering && "bg-jeopardy-gold text-jeopardy-navy ring-8 ring-jeopardy-gold/40",
+          "mx-auto grid aspect-square w-full max-w-xs select-none place-items-center rounded-full font-display text-8xl tracking-wide shadow-2xl shadow-black/50 transition",
+          answering
+            ? "bg-gold text-studio-night"
+            : canBuzz
+              ? "bg-buzzer-red text-white active:scale-95 active:brightness-110"
+              : "bg-desk text-chalk/30",
         )}
         style={{ touchAction: "manipulation" }}
       >
-        {answering ? "YOU'RE UP" : "BUZZ"}
+        {answering ? "You're up" : "Buzz"}
       </button>
 
-      {buzzError && <p role="alert" className="text-sm text-red-300">{buzzError}</p>}
-      {reconnecting && <p className="text-sm text-white/50">Reconnecting&hellip;</p>}
+      {buzzError && <p role="alert" className="text-sm text-buzzer-red">{buzzError}</p>}
+      {reconnecting && <p className="text-sm text-chalk/60">Reconnecting&hellip;</p>}
     </>
   );
 }

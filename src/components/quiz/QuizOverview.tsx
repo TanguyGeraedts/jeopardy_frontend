@@ -6,7 +6,6 @@ import { useQuiz } from "@/hooks/useQuiz";
 import { countQuestions } from "@/lib/quiz-state";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { Spinner } from "@/components/ui/Spinner";
 import { DeleteQuizButton } from "@/components/creator/DeleteQuizButton";
@@ -30,19 +29,15 @@ export function QuizOverview({ quizId }: { quizId: string }) {
 
   return (
     <div className="space-y-8">
-      <Link href="/creator" className="text-sm text-white/50 hover:text-white">
+      <Link href="/creator" className="text-sm text-chalk/60 hover:text-chalk">
         &lsaquo; My quizzes
       </Link>
 
       <div>
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-3xl font-extrabold">{quiz.name}</h1>
-          {owner.isOwner && (
-            <span className="rounded-full bg-jeopardy-gold/15 px-2.5 py-0.5 text-xs font-semibold text-jeopardy-gold">Your quiz</span>
-          )}
-        </div>
-        <p className="mt-1 text-white/50">
-          {count(quiz.categories.length, "category", "categories")} · {count(questionCount, "question", "questions")}
+        <h1 className="font-display text-6xl tracking-wide">{quiz.name}</h1>
+        <p className="mt-1 text-chalk/60">
+          {count(quiz.categories.length, "category", "categories")}, {count(questionCount, "question", "questions")}
+          {owner.isOwner && ". You made this quiz."}
         </p>
       </div>
 
@@ -71,14 +66,13 @@ export function QuizOverview({ quizId }: { quizId: string }) {
 
       {quiz.categories.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-xl font-bold">Categories</h2>
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="text-lg font-semibold">On the board</h2>
+          {/* The category row as players will see it. */}
+          <ul className="grid gap-1.5 bg-studio-night" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(10rem, 1fr))` }}>
             {quiz.categories.map((category) => (
-              <li key={category.id}>
-                <Card className="p-4">
-                  <p className="truncate font-semibold">{category.name}</p>
-                  <p className="text-sm text-white/50">{count(category.questions.length, "question", "questions")}</p>
-                </Card>
+              <li key={category.id} className="flex min-h-24 flex-col items-center justify-center rounded-md bg-board-blue px-3 py-4 text-center">
+                <p className="line-clamp-2 font-display text-2xl uppercase leading-tight tracking-wide">{category.name}</p>
+                <p className="mt-1 text-xs text-chalk/70">{count(category.questions.length, "question", "questions")}</p>
               </li>
             ))}
           </ul>

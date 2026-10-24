@@ -11,11 +11,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
+// Gold is the one main action on a screen; everything else stays quiet.
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-jeopardy-gold text-jeopardy-navy hover:brightness-110",
-  secondary: "bg-white/10 text-white hover:bg-white/20",
-  ghost: "text-white/70 hover:text-white hover:bg-white/10",
-  danger: "bg-red-500 text-white hover:bg-red-400",
+  primary: "bg-gold text-studio-night hover:brightness-110",
+  secondary: "bg-white/[0.08] text-chalk hover:bg-white/[0.14]",
+  ghost: "text-chalk/70 hover:text-chalk hover:bg-white/[0.08]",
+  danger: "bg-buzzer-red text-white hover:brightness-110",
 };
 
 const sizes: Record<ButtonSize, string> = {
@@ -26,7 +27,7 @@ const sizes: Record<ButtonSize, string> = {
 /** Class names for anything that should look like a button (see LinkButton). */
 export function buttonStyles({ variant = "primary", size = "md", className }: { variant?: ButtonVariant; size?: ButtonSize; className?: string } = {}) {
   return cn(
-    "inline-flex items-center justify-center gap-2 rounded-md font-semibold transition",
+    "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition",
     "disabled:cursor-not-allowed disabled:opacity-50",
     variants[variant],
     sizes[size],

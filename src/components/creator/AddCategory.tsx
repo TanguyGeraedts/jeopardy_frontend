@@ -49,7 +49,7 @@ export function AddCategory() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="flex h-full min-h-16 w-full items-center justify-center rounded-lg border-2 border-dashed border-white/25 px-3 text-sm font-semibold text-white/60 transition hover:border-jeopardy-gold hover:text-jeopardy-gold"
+        className="flex h-full min-h-16 w-full items-center justify-center rounded-md border-2 border-dashed border-white/15 px-3 text-sm font-semibold text-chalk/60 transition hover:border-chalk/40 hover:text-chalk"
       >
         + Add category
       </button>
@@ -57,7 +57,7 @@ export function AddCategory() {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-3 rounded-lg border border-white/15 bg-white/5 p-3">
+    <form onSubmit={submit} noValidate className="space-y-3 rounded-md bg-desk p-3">
       <TextField label="Category name" value={name} onChange={(e) => setName(e.target.value)} error={fieldError} autoFocus />
       {formError && <Alert>{formError}</Alert>}
       <div className="flex gap-2">

@@ -53,15 +53,17 @@ export function SessionGame({ quizId, sessionId }: { quizId: string; sessionId: 
 
   return (
     // Full screen on purpose: it covers the site header so the shared view is just the game.
-    <div className="fixed inset-0 z-40 flex flex-col gap-3 bg-background p-4">
-      <div className="flex items-center justify-between gap-4">
-        <p className="font-mono text-sm text-white/50">
-          Lobby <span className="font-bold text-jeopardy-gold">{session.lobbyCode}</span>
+    <div className="fixed inset-0 z-40 flex flex-col gap-3 bg-studio-night p-[1.2vw]">
+      {/* One small, quiet strip: on the stream all attention belongs to the board below. */}
+      <div className="flex items-center justify-between gap-4 text-sm text-chalk/60">
+        <p>
+          Lobby <span className="font-semibold tracking-wider text-chalk">{session.lobbyCode}</span>
         </p>
-        {error && <p role="alert" className="truncate text-sm text-red-300">{error}</p>}
-        <div className="flex items-center gap-4">
+        {error && <p role="alert" className="truncate text-buzzer-red">{error}</p>}
+        <div className="flex items-center gap-5">
+          <FullscreenToggle />
           <SoundToggle muted={muted} onToggle={() => setMuted((m) => !m)} />
-          <Link href={`/quizzes/${quizId}/host/${sessionId}`} className="text-sm text-white/50 hover:text-white">
+          <Link href={`/quizzes/${quizId}/host/${sessionId}`} className="hover:text-chalk">
             Exit board
           </Link>
         </div>
@@ -94,9 +96,9 @@ function MainArea({ session, sessionId, busy, run }: { session: GameSession; ses
   if (session.state === "LOBBY") {
     return (
       <Centered>
-        <p className="text-2xl text-white/60">Join with code</p>
-        <p className="font-mono text-[clamp(3rem,12vw,9rem)] font-extrabold tracking-widest text-jeopardy-gold">{session.lobbyCode}</p>
-        <p className="text-white/50">The first player to join is the lobby host and starts the game.</p>
+        <p className="text-[clamp(1.25rem,2.2vw,2rem)] text-chalk/80">Join the lobby with code</p>
+        <p className="font-display text-[clamp(6rem,20vw,18rem)] leading-none tracking-[0.1em] text-gold">{session.lobbyCode}</p>
+        <p className="text-[clamp(1rem,1.6vw,1.5rem)] text-chalk/70">The first player to join starts the game.</p>
       </Centered>
     );
   }
@@ -114,16 +116,20 @@ function SessionBoard({ session, disabled, onPick }: { session: GameSession; dis
     return { categories: [...byCategory.entries()], rows: values };
   }, [session.clues]);
 
+  // The show's board: blue tiles separated only by the dark of the studio, no borders (they'd blur on a stream).
   return (
     <div
-      className="grid h-full gap-2"
+      className="grid h-full gap-[0.45vw]"
       style={{
         gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))`,
         gridTemplateRows: `auto repeat(${rows.length}, minmax(0, 1fr))`,
       }}
     >
       {categories.map(([name]) => (
-        <div key={name} className="flex min-h-16 items-center justify-center rounded-lg bg-jeopardy-board px-2 py-3 text-center text-[clamp(0.8rem,1.6vw,1.4rem)] font-extrabold uppercase tracking-wide">
+        <div
+          key={name}
+          className="flex min-h-[7vw] items-center justify-center rounded-sm bg-board-blue px-[0.8vw] py-[0.8vw] text-center font-display text-[clamp(1.25rem,2.6vw,3rem)] uppercase leading-[1.05] tracking-wide"
+        >
           <span className="line-clamp-2">{name}</span>
         </div>
       ))}
@@ -131,7 +137,8 @@ function SessionBoard({ session, disabled, onPick }: { session: GameSession; dis
       {rows.flatMap((value) =>
         categories.map(([name, clues]) => {
           const clue = clues.find((c) => c.value === value);
-          if (!clue || clue.revealed) return <div key={`${value}:${name}`} aria-hidden className="rounded-lg bg-white/5" />;
+          // A played tile stays a dimmer blue block, like the show: the grid keeps its shape.
+          if (!clue || clue.revealed) return <div key={`${value}:${name}`} aria-hidden className="rounded-sm bg-board-blue/30" />;
           return (
             <button
               key={clue.id}
@@ -139,7 +146,7 @@ function SessionBoard({ session, disabled, onPick }: { session: GameSession; dis
               disabled={disabled}
               onClick={() => onPick(clue)}
               aria-label={`${name} for ${value}`}
-              className="rounded-lg bg-jeopardy-board text-[clamp(1.5rem,4vw,3.5rem)] font-extrabold text-jeopardy-gold transition enabled:hover:scale-[1.03] enabled:hover:brightness-125 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-jeopardy-gold"
+              className="rounded-sm bg-board-blue font-display text-[clamp(2.5rem,6.5vw,7rem)] leading-none text-gold transition-[filter] enabled:hover:brightness-125 disabled:cursor-wait"
             >
               {value}
             </button>
@@ -180,12 +187,13 @@ function GameOver({ session }: { session: GameSession }) {
   const ranked = [...session.teams].sort((a, b) => b.score - a.score);
   return (
     <Centered>
-      <p className="text-2xl text-white/60">Game over</p>
-      <p className="text-[clamp(2.5rem,8vw,6rem)] font-extrabold text-jeopardy-gold">{ranked[0]?.name ?? "Nobody"} wins!</p>
-      <ol className="space-y-1 text-xl">
-        {ranked.map((team, i) => (
-          <li key={team.id} className="tabular-nums">
-            {i + 1}. {team.name} &middot; {team.score}
+      <p className="text-[clamp(1.25rem,2.2vw,2rem)] text-chalk/80">Game over</p>
+      <p className="font-display text-[clamp(4rem,11vw,10rem)] leading-none tracking-wide text-gold">{ranked[0]?.name ?? "Nobody"} wins</p>
+      <ol className="mt-4 grid grid-cols-[auto_auto] gap-x-10 gap-y-1 text-left font-display text-[clamp(1.75rem,3vw,3rem)] tracking-wide">
+        {ranked.map((team) => (
+          <li key={team.id} className="contents">
+            <span>{team.name}</span>
+            <span className="text-right tabular-nums">{team.score}</span>
           </li>
         ))}
       </ol>
@@ -216,13 +224,35 @@ function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () => void
         if (clickWasUnlock.current && !muted) return; // this click enabled sound; don't turn it off again
         onToggle();
       }}
-      className={cn("text-sm hover:text-white", !muted && !unlocked ? "text-jeopardy-gold" : "text-white/50")}
+      className={cn("hover:text-chalk", !muted && !unlocked && "font-semibold text-chalk")}
     >
       {label}
     </button>
   );
 }
 
+/** Fullscreen for the shared tab: hides the browser's address bar and tabs from the Discord stream. */
+function FullscreenToggle() {
+  const fullscreen = useSyncExternalStore(
+    (onChange) => {
+      document.addEventListener("fullscreenchange", onChange);
+      return () => document.removeEventListener("fullscreenchange", onChange);
+    },
+    () => document.fullscreenElement !== null,
+    () => false,
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={() => (fullscreen ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})}
+      className="hover:text-chalk"
+    >
+      {fullscreen ? "Exit fullscreen" : "Fullscreen"}
+    </button>
+  );
+}
+
 function Centered({ children }: { children: ReactNode }) {
-  return <div className="flex h-full flex-col items-center justify-center gap-4 rounded-2xl bg-jeopardy-board p-6 text-center">{children}</div>;
+  return <div className="flex h-full flex-col items-center justify-center gap-[1vw] rounded-sm bg-board-blue p-[2vw] text-center">{children}</div>;
 }

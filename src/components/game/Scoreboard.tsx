@@ -20,13 +20,15 @@ interface ScoreboardProps {
   clue?: ClueStatus;
 }
 
-/** Team cards along the bottom: name, members, score. Leader is outlined in gold. */
+/**
+ * Team scores along the bottom of the board. Sized for a shared screen: big League Gothic numbers, a thick team-colour
+ * bar, and the answering team as a solid gold block (outlines and small labels blur in a compressed stream).
+ */
 export function Scoreboard({ teams, scores, colours, clue }: ScoreboardProps) {
-  if (teams.length === 0) return <p className="py-3 text-center text-white/50">Waiting for teams to join&hellip;</p>;
-  const top = Math.max(...teams.map((t) => scores[t.id] ?? 0));
+  if (teams.length === 0) return <p className="py-3 text-center text-chalk/60">Waiting for teams to join&hellip;</p>;
 
   return (
-    <ul className="flex gap-3">
+    <ul className="flex gap-[0.5vw]">
       {teams.map((team, index) => {
         const score = scores[team.id] ?? 0;
         const locked = clue?.lockedTeamIds.includes(team.id) ?? false;
@@ -39,24 +41,25 @@ export function Scoreboard({ teams, scores, colours, clue }: ScoreboardProps) {
           <li
             key={team.id}
             className={cn(
-              "min-w-0 flex-1 overflow-hidden rounded-xl border bg-jeopardy-board text-center",
-              answering ? "border-jeopardy-gold ring-2 ring-jeopardy-gold" : top > 0 && score === top ? "border-jeopardy-gold" : "border-white/10",
-              locked && "opacity-50",
+              "min-w-0 flex-1 overflow-hidden rounded-sm text-center",
+              answering ? "bg-gold text-studio-night" : "bg-desk",
+              locked && "opacity-40",
             )}
           >
-            <div className={cn("h-1.5", sessionTeamStyle(colours?.[index], index).bar)} />
-            <div className="px-3 py-2">
-              <p className="truncate text-sm font-semibold text-white/90">{team.name}</p>
-              {!solo && <p className="truncate text-xs text-white/50">{team.players.map((p) => p.name).join(" · ")}</p>}
-              <p className={cn("text-3xl font-extrabold tabular-nums", score < 0 ? "text-red-400" : "text-white")}>{score}</p>
-              {answering && <p className="text-xs font-bold uppercase text-jeopardy-gold">Answering</p>}
-              {locked && <p className="text-xs font-bold uppercase text-red-300">Locked out</p>}
+            <div className={cn("h-[max(6px,0.45vw)]", sessionTeamStyle(colours?.[index], index).bar)} />
+            <div className="px-[0.8vw] py-[0.5vw]">
+              <p className="truncate text-[clamp(0.9rem,1.25vw,1.35rem)] font-semibold">{team.name}</p>
+              {!solo && <p className="truncate text-[clamp(0.75rem,0.95vw,1rem)] opacity-70">{team.players.map((p) => p.name).join(", ")}</p>}
+              <p className={cn("font-display text-[clamp(2.25rem,4vw,4.5rem)] leading-none tabular-nums", score < 0 && !answering && "text-buzzer-red")}>
+                {score}
+              </p>
+              {locked && <p className="text-[clamp(0.75rem,1vw,1.05rem)] font-semibold">Locked out</p>}
               {canJudge && clue && (
-                <div className="mt-1 flex justify-center gap-2">
-                  <button type="button" aria-label={`${team.name} answered correctly`} onClick={() => clue.onCorrect(team.id)} className="min-h-9 flex-1 rounded-md bg-emerald-500/90 font-bold text-white hover:bg-emerald-400">
+                <div className="mt-[0.4vw] flex justify-center gap-2">
+                  <button type="button" aria-label={`${team.name} answered correctly`} onClick={() => clue.onCorrect(team.id)} className="min-h-9 flex-1 rounded-sm bg-emerald-600 font-bold text-white hover:brightness-110">
                     ✓
                   </button>
-                  <button type="button" aria-label={`${team.name} answered wrongly`} onClick={() => clue.onWrong(team.id)} className="min-h-9 flex-1 rounded-md bg-red-500/90 font-bold text-white hover:bg-red-400">
+                  <button type="button" aria-label={`${team.name} answered wrongly`} onClick={() => clue.onWrong(team.id)} className="min-h-9 flex-1 rounded-sm bg-buzzer-red font-bold text-white hover:brightness-110">
                     ✗
                   </button>
                 </div>

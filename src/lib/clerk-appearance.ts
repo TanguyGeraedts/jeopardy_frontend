@@ -9,10 +9,10 @@ type Appearance = NonNullable<ComponentProps<typeof ClerkProvider>["appearance"]
  * (names: https://clerk.com/docs/customization/overview, or inspect an element: classes start with "cl-").
  */
 
-// The palette, in one place. The page behind the card is #050a3a (globals.css --color-background).
-const NAVY_CARD = "#0d1650"; // a step lighter than the page, so the card stands out without shouting
-const NAVY_DEEP = "#081041"; // inputs and the card footer: a step darker than the card
-const GOLD = "#ffcc00"; // jeopardy-gold: only the Continue button and links
+// The app palette (globals.css): desk navy card on the studio-night page, gold for the main action and links.
+const NAVY_CARD = "#0e1654"; // desk navy
+const NAVY_DEEP = "#060b2e"; // studio night: inputs, the card footer, text on the gold button
+const GOLD = "#ffcc00";
 
 export const jeopardyClerkAppearance: Appearance = {
   // Clerk's CSS goes in this layer, which globals.css puts before Tailwind's utilities: our classes below win.
@@ -21,7 +21,7 @@ export const jeopardyClerkAppearance: Appearance = {
     colorPrimary: GOLD, // primary button, links, "Last used" badge
     colorPrimaryForeground: NAVY_DEEP, // text on the gold button
     colorBackground: NAVY_CARD,
-    colorForeground: "#ffffff",
+    colorForeground: "#eef1ff", // chalk
     colorMuted: NAVY_DEEP,
     colorMutedForeground: "rgba(255, 255, 255, 0.6)",
     colorInput: NAVY_DEEP,
@@ -37,7 +37,7 @@ export const jeopardyClerkAppearance: Appearance = {
   elements: {
     // The card: no border, a soft shadow.
     cardBox: "border-0 shadow-2xl shadow-black/40",
-    headerTitle: "text-white text-xl font-semibold",
+    headerTitle: "font-display text-chalk text-4xl font-normal tracking-wide",
     headerSubtitle: "text-white/60",
     formFieldLabel: "text-white/80 font-medium",
     formFieldInput:

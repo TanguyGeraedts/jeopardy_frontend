@@ -2,20 +2,61 @@
 @layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 
+/*
+ * "Studio broadcast": the show's set, tuned to survive a Discord screen share (solid colours, no hairlines).
+ *   studio night  page / the dark around the board
+ *   board blue    clue tiles, the open clue: the one saturated surface
+ *   desk navy     quiet surfaces: panels, dialogs, the login card
+ *   gold          values and the main action only (never borders or decoration)
+ *   chalk         text: a cool off-white that doesn't glare on blue
+ *   buzzer red    wrong, locked out, errors
+ */
 @theme inline {
-  --color-jeopardy-navy: #0a1045;
-  --color-jeopardy-board: #0b1f8f;
+  --color-studio-night: #060b2e;
+  --color-board-blue: #0a1baa;
+  --color-desk: #0e1654;
+  --color-gold: #ffcc00;
+  --color-chalk: #eef1ff;
+  --color-buzzer-red: #e5484d;
+
+  /* Older names, kept as aliases so every screen follows the palette. */
+  --color-jeopardy-navy: #060b2e;
+  --color-jeopardy-board: #0a1baa;
   --color-jeopardy-gold: #ffcc00;
-  --color-background: #050a3a;
-  --color-foreground: #ffffff;
+  --color-background: #060b2e;
+  --color-foreground: #eef1ff;
+
+  /* Geist: everything you click. League Gothic: values, categories, titles. Domine: clue text. */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-league-gothic);
+  --font-serif: var(--font-domine);
+
+  /* The one motion moment: a picked tile grows into the clue screen. Used with motion-safe: only. */
+  --animate-clue-reveal: clue-reveal 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes clue-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Keyboard focus: always visible, neutral (gold is reserved for values and actions). */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-chalk);
+  outline-offset: 2px;
 }
 
 /*

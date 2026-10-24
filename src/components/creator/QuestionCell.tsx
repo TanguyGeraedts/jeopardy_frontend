@@ -8,17 +8,21 @@ interface QuestionCellProps {
   onOpen: () => void;
 }
 
+const MEDIA_LABEL = { IMAGE: "Image", VIDEO: "Video", AUDIO: "Sound" } as const;
+
 /** One tile of the board: a filled question (opens the editor) or an empty slot (opens "new question"). */
 export function QuestionCell({ category, points, question, onOpen }: QuestionCellProps) {
   if (!question) {
+    // Dashed = "nothing here yet": the outline carries meaning, so it stays.
     return (
       <button
         type="button"
         onClick={onOpen}
         aria-label={`Add ${points} point question to ${category.name}`}
-        className="flex min-h-24 flex-col items-center justify-center rounded-lg border-2 border-dashed border-white/20 text-2xl text-white/50 transition hover:border-jeopardy-gold hover:text-white"
+        className="flex min-h-24 flex-col items-center justify-center rounded-md border-2 border-dashed border-white/15 text-chalk/50 transition hover:border-chalk/40 hover:text-chalk"
       >
-        +<span className="text-xs">{points}</span>
+        <span className="text-2xl leading-none">+</span>
+        <span className="font-display text-xl">{points}</span>
       </button>
     );
   }
@@ -28,16 +32,15 @@ export function QuestionCell({ category, points, question, onOpen }: QuestionCel
       type="button"
       onClick={onOpen}
       aria-label={`Edit ${points} point question in ${category.name}`}
-      className="flex min-h-24 flex-col items-start gap-0.5 overflow-hidden rounded-lg border border-white/10 bg-jeopardy-board p-2.5 text-left transition hover:border-jeopardy-gold"
+      className="flex min-h-24 flex-col items-start gap-1 overflow-hidden rounded-md bg-board-blue p-2.5 text-left transition hover:brightness-125"
     >
-      <span className="text-xl font-extrabold text-jeopardy-gold">{points}</span>
-      {question.dailyDouble && (
-        <span className="rounded bg-jeopardy-gold px-1.5 text-[10px] font-extrabold uppercase text-jeopardy-navy">Daily double</span>
+      <span className="font-display text-4xl leading-none text-gold">{points}</span>
+      {(question.dailyDouble || question.answerType !== "TEXT") && (
+        <span className="text-xs font-semibold text-chalk/80">
+          {[question.dailyDouble && "Daily double", question.answerType !== "TEXT" && MEDIA_LABEL[question.answerType]].filter(Boolean).join(", ")}
+        </span>
       )}
-      {question.answerType !== "TEXT" && (
-        <span className="rounded bg-white/15 px-1.5 text-[10px] font-semibold uppercase">{question.answerType}</span>
-      )}
-      <span className="line-clamp-2 text-sm">{question.questionText}</span>
+      <span className="line-clamp-2 text-sm text-chalk/90">{question.questionText}</span>
     </button>
   );
 }

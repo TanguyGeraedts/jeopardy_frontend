@@ -25,7 +25,7 @@ export function RowHeader({ points, onChange, onRemove }: RowHeaderProps) {
   }
 
   return (
-    <div className="flex items-center gap-0.5 rounded-lg border border-white/10 bg-white/5 p-1">
+    <div className="flex items-center gap-0.5 rounded-md bg-desk p-1">
       <input
         type="number"
         min={1}
@@ -42,13 +42,13 @@ export function RowHeader({ points, onChange, onRemove }: RowHeaderProps) {
             e.currentTarget.blur();
           }
         }}
-        className="min-h-10 w-20 min-w-0 rounded border border-transparent bg-transparent px-1 text-center font-extrabold text-jeopardy-gold hover:border-white/30 focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+        className="min-h-10 w-20 min-w-0 rounded border border-transparent bg-transparent px-1 text-center font-display text-3xl text-gold hover:border-white/30 focus:border-chalk/60 focus:outline-none"
       />
       <button
         type="button"
         aria-label={`Remove ${points} point row`}
         onClick={onRemove}
-        className="h-11 w-8 shrink-0 text-white/50 transition hover:text-red-300"
+        className="h-11 w-8 shrink-0 text-chalk/50 transition hover:text-buzzer-red"
       >
         ✕
       </button>

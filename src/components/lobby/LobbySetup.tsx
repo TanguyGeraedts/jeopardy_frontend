@@ -69,12 +69,12 @@ export function LobbySetup({ initial, onCreate, busy = false }: LobbySetupProps)
                             aria-pressed={form.mode === m.value}
                             onClick={() => setForm((f) => ({ ...f, mode: m.value }))}
                             className={cn(
-                                "rounded-xl border p-4 text-left transition",
-                                form.mode === m.value ? "border-jeopardy-gold bg-jeopardy-gold/10" : "border-white/10 bg-white/5 hover:bg-white/10",
+                                "rounded-lg p-4 text-left transition",
+                                form.mode === m.value ? "bg-board-blue" : "bg-desk hover:bg-white/[0.08]",
                             )}
                         >
-                            <p className="font-bold">{m.label}</p>
-                            <p className="text-sm text-white/50">{m.hint}</p>
+                            <p className="font-display text-3xl tracking-wide">{m.label}</p>
+                            <p className="text-sm text-chalk/70">{m.hint}</p>
                         </button>
                     ))}
                 </div>
@@ -121,7 +121,7 @@ export function LobbySetup({ initial, onCreate, busy = false }: LobbySetupProps)
                 <Card className="space-y-4">
                     <div>
                         <h2 className="text-lg font-bold">Team colours</h2>
-                        <p className="text-sm text-white/50">Pick a colour for each team. Choosing one that's taken swaps the two teams.</p>
+                        <p className="text-sm text-white/50">Pick a colour for each team. Choosing one that&apos;s taken swaps the two teams.</p>
                         {err("teamColours") && <p className="text-xs text-red-300">{err("teamColours")}</p>}
                     </div>
                     <ul className="space-y-3">
@@ -144,7 +144,7 @@ export function LobbySetup({ initial, onCreate, busy = false }: LobbySetupProps)
                                                 className={cn(
                                                     "grid size-9 place-items-center rounded-lg border-2 transition",
                                                     teamColourStyle(c).swatch,
-                                                    selected ? "border-white ring-2 ring-jeopardy-gold" : "border-transparent",
+                                                    selected ? "border-white ring-2 ring-white/40" : "border-transparent",
                                                     taken && "opacity-30 hover:opacity-70",
                                                 )}
                                             >
@@ -170,7 +170,7 @@ export function LobbySetup({ initial, onCreate, busy = false }: LobbySetupProps)
                 />
             </Card>
 
-            <details className="rounded-xl border border-white/10 bg-black/20 p-4 text-sm">
+            <details className="rounded-lg bg-desk/60 p-4 text-sm">
                 <summary className="cursor-pointer font-semibold text-white/70">Request body preview</summary>
                 <pre className="mt-3 overflow-x-auto font-mono text-xs text-white/70">{JSON.stringify(toLobbyRequest(form), null, 2)}</pre>
             </details>

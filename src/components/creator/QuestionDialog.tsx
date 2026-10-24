@@ -36,10 +36,10 @@ export function QuestionDialog({ category, question, points, onDelete, onClose }
       ref={ref}
       onClose={onClose}
       aria-labelledby={titleId}
-      className="m-auto max-h-[90vh] w-[min(30rem,94vw)] overflow-y-auto rounded-2xl border border-white/15 bg-jeopardy-navy p-5 text-white backdrop:bg-black/60"
+      className="m-auto max-h-[90vh] w-[min(30rem,94vw)] overflow-y-auto rounded-xl bg-desk p-6 text-chalk shadow-2xl shadow-black/50 backdrop:bg-studio-night/80"
     >
-      <h2 id={titleId} className="mb-4 text-lg font-bold">
-        {question ? "Edit question" : "New question"} <span className="text-sm font-normal text-white/50">in {category.name}</span>
+      <h2 id={titleId} className="mb-4 font-display text-3xl tracking-wide">
+        {question ? "Edit question" : "New question"} <span className="font-sans text-sm text-chalk/60">in {category.name}</span>
       </h2>
       <QuestionForm
         initial={question ?? { points }}

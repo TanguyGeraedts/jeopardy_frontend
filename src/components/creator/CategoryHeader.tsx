@@ -28,7 +28,7 @@ export function CategoryHeader({ category, onRename, onRemove }: CategoryHeaderP
   }
 
   return (
-    <div className="flex min-h-16 items-center gap-1 rounded-lg bg-jeopardy-board p-1.5">
+    <div className="flex min-h-16 items-center gap-1 rounded-md bg-board-blue p-1.5">
       <input
         aria-label="Category name"
         value={draft ?? category.name}
@@ -43,7 +43,7 @@ export function CategoryHeader({ category, onRename, onRemove }: CategoryHeaderP
             e.currentTarget.blur();
           }
         }}
-        className="min-h-10 w-full min-w-0 rounded border border-transparent bg-transparent px-2 text-center text-sm font-bold hover:border-white/40 focus:border-white/60 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+        className="min-h-10 w-full min-w-0 rounded border border-transparent bg-transparent px-2 text-center font-display text-2xl uppercase tracking-wide hover:border-white/40 focus:border-chalk/70 focus:outline-none"
       />
       <button
         type="button"

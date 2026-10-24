@@ -6,15 +6,15 @@ import { Button } from "@/components/ui/Button";
 
 export function Header() {
   return (
-    <header className="border-b border-white/10 bg-black/20">
+    <header className="bg-studio-night">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="text-lg font-extrabold tracking-wide text-jeopardy-gold">
-            JEOPARDY
+        <div className="flex items-baseline gap-8">
+          <Link href="/" className="font-display text-3xl leading-none tracking-wide text-gold">
+            Jeopardy
           </Link>
-          <nav className="text-sm text-white/70">
-            <Link href="/creator" className="hover:text-white">
-              Creator
+          <nav className="text-sm text-chalk/70">
+            <Link href="/creator" className="hover:text-chalk">
+              My quizzes
             </Link>
           </nav>
         </div>

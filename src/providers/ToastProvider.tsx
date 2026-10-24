@@ -56,13 +56,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div
           role={toast.tone === "error" ? "alert" : "status"}
           className={cn(
-            "fixed bottom-6 left-1/2 z-50 flex max-w-[92vw] -translate-x-1/2 items-center gap-4 rounded-lg border px-4 py-2.5 text-sm shadow-lg",
-            toast.tone === "error" ? "border-red-400/50 bg-red-950 text-red-100" : "border-white/20 bg-slate-900 text-white",
+            "fixed bottom-6 left-1/2 z-50 flex max-w-[92vw] -translate-x-1/2 items-center gap-4 rounded-lg px-4 py-2.5 text-sm shadow-lg shadow-black/40",
+            toast.tone === "error" ? "bg-buzzer-red text-white" : "bg-desk text-chalk",
           )}
         >
           <span>{toast.message}</span>
           {toast.undo && (
-            <button type="button" onClick={undo} className="min-h-9 font-bold text-jeopardy-gold hover:brightness-110">
+            <button type="button" onClick={undo} className="min-h-9 font-bold text-gold hover:brightness-110">
               Undo
             </button>
           )}

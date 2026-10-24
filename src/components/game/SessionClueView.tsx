@@ -30,18 +30,24 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
   const solo = session.mode === "SOLO";
 
   return (
-    <div className="flex h-full flex-col gap-4 rounded-2xl bg-jeopardy-board p-6">
-      <div className="flex items-center justify-between gap-3 text-white/80">
-        <p className="text-lg font-bold uppercase tracking-wide">
-          {clue.category} <span className="text-jeopardy-gold">· {clue.value}</span>
+    // Grows out of the picked tile (the one motion on the board; skipped when the viewer prefers less motion).
+    <div className="flex h-full flex-col gap-[1.2vw] rounded-sm bg-board-blue p-[2vw] motion-safe:animate-clue-reveal">
+      <div className="flex items-baseline justify-between gap-4 font-display text-[clamp(1.5rem,2.6vw,3rem)] leading-none tracking-wide">
+        <p className="uppercase">
+          {clue.category}
+          <span className="ml-[1vw] text-gold">{clue.value}</span>
         </p>
-        {clue.dailyDouble && (
-          <span className="rounded bg-jeopardy-gold px-2 py-0.5 text-sm font-extrabold uppercase text-jeopardy-navy">Daily double</span>
-        )}
+        {clue.dailyDouble && <p className="text-gold">Daily double</p>}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 text-center">
-        <p className={cn("max-w-4xl shrink-0 font-bold leading-tight", media ? "text-[clamp(1.25rem,2.5vw,2.25rem)]" : "text-[clamp(1.5rem,4vw,3.5rem)]")}>
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-[1.2vw] text-center">
+        {/* The show's clue type: a sturdy serif in capitals, short lines so it reads from the back of a room. */}
+        <p
+          className={cn(
+            "max-w-[30ch] shrink-0 font-serif font-bold uppercase leading-[1.18]",
+            media ? "text-[clamp(1.5rem,2.8vw,3rem)]" : "text-[clamp(2rem,4.6vw,5.25rem)]",
+          )}
+        >
           {clue.question}
         </p>
         {media && (
@@ -50,35 +56,38 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
             <ClueMedia type={media.type} url={media.url} label={clue.question ?? "Clue media"} />
           </div>
         )}
-        {showAnswer && <p className="shrink-0 text-[clamp(1.25rem,3vw,2.5rem)] font-extrabold text-jeopardy-gold">{clue.answer}</p>}
+        {showAnswer && (
+          <p className="max-w-[30ch] shrink-0 font-serif text-[clamp(1.75rem,3.6vw,4rem)] font-bold uppercase leading-tight text-gold">{clue.answer}</p>
+        )}
       </div>
 
-      <div className="space-y-2 text-center" aria-live="polite">
+      <div className="space-y-[0.8vw] text-center" aria-live="polite">
         {answeringId && (
-          <p className="text-[clamp(1.25rem,2.5vw,2rem)] font-extrabold text-jeopardy-gold">
-            &#9889; {nameOf(answeringId)}
-            {!solo && <> ({teamName(session.buzzes.find((b) => b.playerId === answeringId)?.teamId ?? null)})</>} is answering!
+          <p className="font-display text-[clamp(2rem,3.6vw,4rem)] leading-none tracking-wide">
+            {nameOf(answeringId)}
+            {!solo && <span className="text-chalk/70"> ({teamName(session.buzzes.find((b) => b.playerId === answeringId)?.teamId ?? null)})</span>} is answering
           </p>
         )}
         {session.buzzes.length > 0 ? (
-          <ol className="flex flex-wrap justify-center gap-2">
+          // Solid blocks, no outlines: the buzz order stays readable in a compressed stream.
+          <ol className="flex flex-wrap justify-center gap-[0.5vw]">
             {session.buzzes.map((buzz, i) => (
               <li
                 key={buzz.playerId}
                 className={cn(
-                  "rounded-lg border px-3 py-1.5 text-sm",
-                  buzz.playerId === answeringId ? "border-jeopardy-gold bg-jeopardy-gold/20 font-bold" : "border-white/15 bg-white/5",
+                  "rounded-sm px-[0.9vw] py-[0.35vw] text-[clamp(0.95rem,1.3vw,1.4rem)] font-semibold",
+                  buzz.playerId === answeringId ? "bg-gold text-studio-night" : "bg-studio-night/50",
                 )}
               >
-                <span className="mr-2 font-extrabold">{i + 1}</span>
+                <span className="mr-2">{i + 1}</span>
                 {nameOf(buzz.playerId)}
-                {!solo && <span className="text-white/60"> ({teamName(buzz.teamId)})</span>}
+                {!solo && <span className="opacity-70"> ({teamName(buzz.teamId)})</span>}
               </li>
             ))}
           </ol>
         ) : (
-          <p className="text-white/50">
-            {reading ? "Read the clue, then open the buzzers." : "Buzzers open: waiting for someone to buzz in…"}
+          <p className="text-[clamp(1rem,1.5vw,1.5rem)] text-chalk/75">
+            {reading ? "Read the clue, then open the buzzers." : "Buzzers are open."}
           </p>
         )}
       </div>
@@ -118,15 +127,17 @@ function ClueTimer({ paused }: { paused: boolean }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-4">
-        <div className="h-3 flex-1 overflow-hidden rounded-full bg-white/10" role="timer" aria-label="Time left">
-          <div className={cn("h-full rounded-full", low ? "bg-red-500" : "bg-jeopardy-gold")} style={{ width: `${timer.fraction * 100}%` }} />
+        <div className="h-[max(6px,0.5vw)] flex-1 overflow-hidden rounded-full bg-studio-night/50" role="timer" aria-label="Time left">
+          <div className={cn("h-full rounded-full", low ? "bg-buzzer-red" : "bg-chalk")} style={{ width: `${timer.fraction * 100}%` }} />
         </div>
-        <p className={cn("w-16 text-right text-4xl font-extrabold tabular-nums", low && "text-red-400")}>{timer.seconds}</p>
+        <p className={cn("w-[4ch] text-right font-display text-[clamp(2rem,3vw,3.5rem)] leading-none tabular-nums", low && "text-buzzer-red")}>
+          {timer.seconds}
+        </p>
         <Button size="sm" variant="ghost" onClick={timer.reset}>
           Restart
         </Button>
       </div>
-      {timer.done && !paused && <p className="text-center text-xl font-extrabold text-red-400">Time&apos;s up!</p>}
+      {timer.done && !paused && <p className="text-center font-display text-[clamp(1.75rem,3vw,3rem)] tracking-wide text-buzzer-red">Time&apos;s up</p>}
     </div>
   );
 }

@@ -61,9 +61,8 @@ export function QuizHeader({ quiz, onUpdated }: QuizHeaderProps) {
                         e.currentTarget.blur();
                     }
                 }}
-                className="block min-h-12 w-full max-w-xl rounded-md border border-transparent bg-transparent px-1 text-3xl font-extrabold hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+                className="block min-h-14 w-full max-w-xl rounded-md border border-transparent bg-transparent px-1 font-display text-5xl tracking-wide hover:border-white/20 focus:border-chalk/50 focus:outline-none"
             />
-            <p className="text-xs text-white/40">{quiz.id}</p>
         </div>
     );
 }

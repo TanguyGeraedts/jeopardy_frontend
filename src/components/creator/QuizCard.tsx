@@ -9,13 +9,10 @@ export function QuizCard({ quiz }: { quiz: Quiz }) {
 
     return (
         <li>
-            <Link
-                href={`/quizzes/${quiz.id}`}
-                className="block rounded-xl border border-white/10 bg-white/5 p-5 transition hover:border-jeopardy-gold/60 hover:bg-white/10"
-            >
-                <h3 className="truncate text-lg font-bold">{quiz.name}</h3>
-                <p className="mt-1 text-sm text-white/50">
-                    {count(quiz.categories.length, "category", "categories")} · {count(questionCount, "question", "questions")}
+            <Link href={`/quizzes/${quiz.id}`} className="block rounded-lg bg-desk px-5 py-4 transition hover:bg-board-blue">
+                <h3 className="truncate font-display text-3xl tracking-wide">{quiz.name}</h3>
+                <p className="mt-1 text-sm text-chalk/60">
+                    {count(quiz.categories.length, "category", "categories")}, {count(questionCount, "question", "questions")}
                 </p>
             </Link>
         </li>

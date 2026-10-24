@@ -55,8 +55,8 @@ export function HostScreen({ quizId }: { quizId: string }) {
         &lsaquo; Back to quiz
       </Link>
       <div>
-        <h1 className="text-3xl font-extrabold">{quiz.name}</h1>
-        <p className="mt-1 text-white/50">Set up the lobby before you play.</p>
+        <h1 className="font-display text-6xl tracking-wide">{quiz.name}</h1>
+        <p className="mt-1 text-chalk/60">Set up the lobby before you play.</p>
       </div>
       {createError && <Alert title="Could not create the lobby">{createError}</Alert>}
       <LobbySetup initial={form} busy={creating} onCreate={create} />
