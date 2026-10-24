@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/providers/AuthProvider";
+import { Show, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/Button";
 
 export function Header() {
-  const { ready, user, logout } = useAuth();
-
   return (
     <header className="border-b border-white/10 bg-black/20">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
@@ -21,17 +19,14 @@ export function Header() {
           </nav>
         </div>
 
-        {ready && user && (
-          <div className="flex items-center gap-3 text-sm">
-            <div className="text-right leading-tight">
-              <p className="text-white/90">{user.email ?? user.sub}</p>
-              <p className="text-xs text-white/40">{user.roles.join(", ") || "no roles"}</p>
-            </div>
-            <Button variant="ghost" onClick={logout}>
-              Log out
-            </Button>
-          </div>
-        )}
+        <Show when="signed-in">
+          <UserButton />
+        </Show>
+        <Show when="signed-out">
+          <SignInButton>
+            <Button variant="ghost">Sign in</Button>
+          </SignInButton>
+        </Show>
       </div>
     </header>
   );

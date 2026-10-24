@@ -44,8 +44,3 @@ export const GameplayPaths = {
   /** PUT { sound } (null = automatic) */
   teamBuzzerSound: (sessionId: string, teamId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/teams/${enc(teamId)}/buzzer-sound`,
 } as const;
-
-export const AuthPaths = {
-  mockToken: "/api/public/mock-auth/token",
-  me: "/api/demo/me",
-} as const;

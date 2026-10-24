@@ -1,21 +1,17 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useAuth } from "@/providers/AuthProvider";
-import { Spinner } from "@/components/ui/Spinner";
-import { DevLoginPanel } from "./DevLoginPanel";
+import { RedirectToSignIn, Show } from "@clerk/nextjs";
 
 /**
- * Gate for pages that need a logged-in user. Optionally require a role (e.g. "ADMIN").
- * This is UX only: the backend enforces the real rules (@PreAuthorize).
+ * Gate for pages that need a logged-in host: signed-out visitors go to /sign-in and come back afterwards.
+ * This is UX only: the backend checks the Clerk token on every request.
  */
-export function RequireAuth({ children, role }: { children: ReactNode; role?: string }) {
-  const { ready, isAuthenticated, hasRole } = useAuth();
-
-  if (!ready) return <div className="flex justify-center py-20"><Spinner /></div>;
-  if (!isAuthenticated) return <DevLoginPanel />;
-  if (role && !hasRole(role)) {
-    return <p className="py-20 text-center text-white/60">You need the {role} role to see this page.</p>;
-  }
-  return <>{children}</>;
+export function RequireAuth({ children }: { children: ReactNode }) {
+  // <Show> renders nothing until Clerk has loaded, so this never redirects a signed-in user by accident.
+  return (
+    <Show when="signed-in" fallback={<RedirectToSignIn />}>
+      {children}
+    </Show>
+  );
 }

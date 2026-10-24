@@ -1,4 +1,4 @@
-import { tokenStore } from "@/lib/auth/token-store";
+import { getToken } from "@clerk/nextjs";
 import type { ApiResponse, ProblemDetail } from "@/types";
 
 /** Normalised error thrown for every failed call. Built from the backend's ProblemDetail. */
@@ -28,7 +28,7 @@ export function errorMessage(error: unknown): string {
 interface RequestOptions {
     method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
     body?: unknown;
-    /** Send the Bearer token. Default true; the mock-auth endpoint is public. */
+    /** Send the host's Clerk session token. Default true; player calls (handoff, buzz) set false. */
     auth?: boolean;
     signal?: AbortSignal;
     /** Extra headers, e.g. the player token for a buzz. */
@@ -42,7 +42,8 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     const headers: Record<string, string> = { Accept: "application/json", ...options.headers };
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (auth) {
-        const token = tokenStore.get();
+        // Clerk session tokens live ~60 s; getToken() returns a fresh one (refreshed in the background).
+        const token = await getToken().catch(() => null);
         if (token) headers.Authorization = `Bearer ${token}`;
     }
 
@@ -60,9 +61,6 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     }
 
     if (!response.ok) {
-        // Token rejected/expired: drop it so the UI falls back to the login panel.
-        if (response.status === 401 && auth) tokenStore.clear();
-
         const problem = (await response.json().catch(() => null)) as ProblemDetail | null;
         throw new ApiError(
             response.status,
