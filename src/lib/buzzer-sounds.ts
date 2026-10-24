@@ -1,6 +1,8 @@
 /**
  * Built-in buzzer sounds, synthesized with the Web Audio API (no audio files to host).
- * The ids mirror gameplay/domain/model/BuzzerSound.java: keep them in sync.
+ * The ids mirror jeopardy_backend gameplay/domain/model/BuzzerSound.java and must be kept in sync by hand:
+ * an id only the backend knows plays the automatic sound (with a console warning), an id only listed here
+ * is rejected by the backend when picked.
  */
 export const BUZZER_SOUND_IDS = ["CLASSIC", "BELL", "HORN", "LASER", "CHIME", "ARCADE", "BOING", "GONG"] as const;
 export type BuzzerSoundId = (typeof BUZZER_SOUND_IDS)[number];
@@ -16,9 +18,17 @@ export const BUZZER_SOUND_LABELS: Record<BuzzerSoundId, string> = {
   GONG: "Gong",
 };
 
+const warnedUnknown = new Set<string>();
+
 /** A team without a picked sound gets one by its position, so neighbours never sound alike. */
-export const buzzerSoundFor = (picked: string | null | undefined, teamIndex: number): BuzzerSoundId =>
-  BUZZER_SOUND_IDS.find((id) => id === picked) ?? BUZZER_SOUND_IDS[teamIndex % BUZZER_SOUND_IDS.length];
+export function buzzerSoundFor(picked: string | null | undefined, teamIndex: number): BuzzerSoundId {
+  const known = BUZZER_SOUND_IDS.find((id) => id === picked);
+  if (picked && !known && !warnedUnknown.has(picked)) {
+    warnedUnknown.add(picked);
+    console.warn(`Unknown buzzer sound "${picked}" from the backend: add it to BUZZER_SOUND_IDS. Using the automatic sound.`);
+  }
+  return known ?? BUZZER_SOUND_IDS[teamIndex % BUZZER_SOUND_IDS.length];
+}
 
 let context: AudioContext | null = null;
 
@@ -34,8 +44,15 @@ export function unlockAudio(): void {
   if (ctx?.state === "suspended") void ctx.resume();
 }
 
-/** True once the browser lets this page play sound. */
+/** True while the browser lets this page play sound. */
 export const audioUnlocked = (): boolean => audio()?.state === "running";
+
+/** Calls back whenever sound gets allowed or blocked again (e.g. the OS interrupts audio). For useSyncExternalStore. */
+export function subscribeAudioState(onChange: () => void): () => void {
+  const ctx = audio();
+  ctx?.addEventListener("statechange", onChange);
+  return () => ctx?.removeEventListener("statechange", onChange);
+}
 
 /** One oscillator note with an attack/decay envelope, into `out`. Frequencies may glide via `to`. */
 function tone(

@@ -1,0 +1,7 @@
+node_modules
+.next
+.git
+.idea
+.env*
+!.env.local.example
+Dockerfile

@@ -78,7 +78,9 @@ function SoundOnly({ url, label, onError, className }: { url: string; label: str
   const toggle = () => {
     const el = audio.current;
     if (!el) return;
-    if (el.paused) el.play().catch(onError);
+    // Only "can't play this file" means the link is broken. AbortError (paused before it started) and
+    // NotAllowedError (no click yet) are harmless; a failed load also fires the element's own onError.
+    if (el.paused) el.play().catch((e: DOMException) => e.name === "NotSupportedError" && onError());
     else el.pause();
   };
 

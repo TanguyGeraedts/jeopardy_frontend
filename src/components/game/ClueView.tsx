@@ -7,6 +7,7 @@ import { teamColor } from "@/lib/team-colors";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 import type { Category, GameTeam } from "@/types";
+import { ClueMedia } from "./ClueMedia";
 
 interface ClueViewProps {
   category: Category;
@@ -22,6 +23,7 @@ interface ClueViewProps {
 /** One open clue: question, buzz order, countdown and host controls. Mount with key={question.id}. */
 export function ClueView({ category, clue, teams, onBuzz, onReveal, onClose }: ClueViewProps) {
   const { question, revealed, buzzes, lockedTeamIds } = clue;
+  const media = question.answerType !== "TEXT" && question.mediaUrl ? { type: question.answerType, url: question.mediaUrl } : null;
   const timer = useCountdown(CLUE_SECONDS);
   const low = timer.seconds <= 5;
   const answering = currentBuzz(clue);
@@ -67,18 +69,17 @@ export function ClueView({ category, clue, teams, onBuzz, onReveal, onClose }: C
         )}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto text-center">
-        <p className="max-w-4xl text-[clamp(1.5rem,4vw,3.5rem)] font-bold leading-tight">{question.questionText}</p>
-        {revealed && (
-          <div className="space-y-3">
-            <p className="text-[clamp(1.25rem,3vw,2.5rem)] font-extrabold text-jeopardy-gold">{question.answerText}</p>
-            {question.mediaUrl && question.answerType === "IMAGE" && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={question.mediaUrl} alt={question.answerText} className="mx-auto max-h-64 rounded-lg" />
-            )}
-            {question.mediaUrl && question.answerType === "VIDEO" && <video src={question.mediaUrl} controls className="mx-auto max-h-64 rounded-lg" />}
+      {/* Same layout as the live board (SessionClueView): media belongs to the question, the answer comes on reveal. */}
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 text-center">
+        <p className={cn("max-w-4xl shrink-0 font-bold leading-tight", media ? "text-[clamp(1.25rem,2.5vw,2.25rem)]" : "text-[clamp(1.5rem,4vw,3.5rem)]")}>
+          {question.questionText}
+        </p>
+        {media && (
+          <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+            <ClueMedia type={media.type} url={media.url} label={question.questionText} />
           </div>
         )}
+        {revealed && <p className="shrink-0 text-[clamp(1.25rem,3vw,2.5rem)] font-extrabold text-jeopardy-gold">{question.answerText}</p>}
       </div>
 
       <div className="space-y-2 text-center" aria-live="polite">

@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useBuzzerSounds } from "@/hooks/useBuzzerSounds";
 import { useGameSession } from "@/hooks/useGameSession";
 import { errorMessage } from "@/lib/api/client";
 import { hostControls } from "@/lib/api/sessions";
-import { audioUnlocked, unlockAudio } from "@/lib/buzzer-sounds";
+import { audioUnlocked, subscribeAudioState, unlockAudio } from "@/lib/buzzer-sounds";
 import { cn } from "@/lib/cn";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
@@ -195,24 +195,29 @@ function GameOver({ session }: { session: GameSession }) {
 
 /**
  * Buzzer sound on/off. Browsers block sound until the page is clicked once, so until then it says so;
- * any click on the board (e.g. picking the first clue) unlocks it.
+ * any click on the board (e.g. picking the first clue) unlocks it. The label follows the browser's real audio state.
  */
 function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () => void }) {
-  const [unlocked, setUnlocked] = useState(false);
+  const unlocked = useSyncExternalStore(subscribeAudioState, audioUnlocked, () => false);
+  // Set on pointerdown, before the window listener unlocks audio: a click that only unlocks must not also mute.
+  const clickWasUnlock = useRef(false);
 
   useEffect(() => {
-    const unlock = () => {
-      unlockAudio();
-      // resume() is async; check again shortly after the click.
-      setTimeout(() => setUnlocked(audioUnlocked()), 100);
-    };
-    window.addEventListener("pointerdown", unlock);
-    return () => window.removeEventListener("pointerdown", unlock);
+    window.addEventListener("pointerdown", unlockAudio);
+    return () => window.removeEventListener("pointerdown", unlockAudio);
   }, []);
 
   const label = muted ? "🔇 Buzzer sound off" : unlocked ? "🔊 Buzzer sound on" : "🔈 Click anywhere to enable sound";
   return (
-    <button type="button" onClick={onToggle} className={cn("text-sm hover:text-white", !muted && !unlocked ? "text-jeopardy-gold" : "text-white/50")}>
+    <button
+      type="button"
+      onPointerDown={() => (clickWasUnlock.current = !audioUnlocked())}
+      onClick={() => {
+        if (clickWasUnlock.current && !muted) return; // this click enabled sound; don't turn it off again
+        onToggle();
+      }}
+      className={cn("text-sm hover:text-white", !muted && !unlocked ? "text-jeopardy-gold" : "text-white/50")}
+    >
       {label}
     </button>
   );
