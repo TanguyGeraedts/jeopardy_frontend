@@ -12,7 +12,7 @@ import {
   withQuestionReplaced,
 } from "@/lib/quiz-state";
 import type { QuizUpdate } from "@/hooks/useQuiz";
-import type { Category, QuestionRequest } from "@/types";
+import type { Category, Question, QuestionRequest } from "@/types";
 
 /**
  * Everything the board can do to the quiz it shows. Each action calls the API, then applies the
@@ -23,8 +23,9 @@ interface QuizEditor {
   addCategory: (name: string) => Promise<Category>;
   renameCategory: (categoryId: string, name: string) => Promise<void>;
   removeCategory: (categoryId: string) => Promise<void>;
-  addQuestion: (categoryId: string, body: QuestionRequest) => Promise<void>;
-  updateQuestion: (categoryId: string, questionId: string, body: QuestionRequest) => Promise<void>;
+  /** Returns the new question (autosave needs its id to keep updating it). */
+  addQuestion: (categoryId: string, body: QuestionRequest) => Promise<Question>;
+  updateQuestion: (categoryId: string, questionId: string, body: QuestionRequest) => Promise<Question>;
   removeQuestion: (categoryId: string, questionId: string) => Promise<void>;
 }
 
@@ -56,10 +57,12 @@ export function QuizEditorProvider({ quizId, onQuizChange, children }: ProviderP
       async addQuestion(categoryId, body) {
         const question = await addQuestion(quizId, categoryId, body);
         onQuizChange((q) => withQuestionAdded(q, categoryId, question));
+        return question;
       },
       async updateQuestion(categoryId, questionId, body) {
         const question = await updateQuestion(quizId, categoryId, questionId, body);
         onQuizChange((q) => withQuestionReplaced(q, categoryId, question));
+        return question;
       },
       async removeQuestion(categoryId, questionId) {
         await removeQuestion(quizId, categoryId, questionId);

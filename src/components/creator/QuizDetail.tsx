@@ -8,9 +8,11 @@ import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
 import { BackLink } from "@/components/ui/BackLink";
 import { DeleteQuizButton } from "./DeleteQuizButton";
+import { EditorToolbar } from "./EditorToolbar";
 import { QuizBoard } from "./QuizBoard";
 import { QuizHeader } from "./QuizHeader";
 
+/** The quiz editor. data-wide lets the site layout give the board (and its side panel) the full window width. */
 export function QuizDetail({ quizId }: { quizId: string }) {
   const { state, setQuiz } = useQuiz(quizId);
   const owner = useIsOwner(quizId);
@@ -29,13 +31,16 @@ export function QuizDetail({ quizId }: { quizId: string }) {
   const { quiz } = state;
   return (
     <QuizEditorProvider quizId={quiz.id} onQuizChange={setQuiz}>
-      <div className="space-y-6">
-        <BackLink href={`/quizzes/${quiz.id}`}>Back to quiz</BackLink>
-        <div className="flex items-start justify-between gap-4">
+      <div data-wide className="space-y-6">
+        <BackLink href="/creator">My quizzes</BackLink>
+        <div className="space-y-3">
           <QuizHeader quiz={quiz} onUpdated={setQuiz} />
-          <DeleteQuizButton quizId={quiz.id} quizName={quiz.name} />
+          <EditorToolbar quiz={quiz} onUpdated={setQuiz} />
         </div>
         <QuizBoard quiz={quiz} />
+        <div className="flex justify-end border-t border-white/10 pt-6">
+          <DeleteQuizButton quizId={quiz.id} quizName={quiz.name} />
+        </div>
       </div>
     </QuizEditorProvider>
   );

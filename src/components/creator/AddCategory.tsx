@@ -1,35 +1,30 @@
 "use client";
 
+import { Plus } from "@phosphor-icons/react";
 import { useState } from "react";
 import { toApiError } from "@/lib/api/client";
 import { validateCategoryName } from "@/lib/validation/quiz";
 import { useQuizEditor } from "@/providers/QuizEditorProvider";
-import { Alert } from "@/components/ui/Alert";
-import { Button } from "@/components/ui/Button";
-import { TextField } from "@/components/ui/TextField";
+import { fieldClass } from "@/components/ui/fieldStyles";
 
-/** "+ Add category" that expands into a one-field form. */
+/** The board's last column header: "+ Category", which turns into a name field. Enter adds, Esc cancels. */
 export function AddCategory() {
   const editor = useQuizEditor();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
-  const [fieldError, setFieldError] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   function close() {
     setOpen(false);
     setName("");
-    setFieldError(null);
-    setFormError(null);
+    setError(null);
   }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    setFormError(null);
-
     const invalid = validateCategoryName(name);
-    setFieldError(invalid);
+    setError(invalid);
     if (invalid) return;
 
     setBusy(true);
@@ -37,9 +32,8 @@ export function AddCategory() {
       await editor.addCategory(name.trim());
       close();
     } catch (e) {
-      const error = toApiError(e);
-      if (error.fieldErrors.name) setFieldError(error.fieldErrors.name);
-      else setFormError(error.message); // e.g. 409 duplicate category name
+      const apiError = toApiError(e);
+      setError(apiError.fieldErrors.name ?? apiError.message); // e.g. 409 duplicate category name
     } finally {
       setBusy(false);
     }
@@ -48,26 +42,30 @@ export function AddCategory() {
   if (!open) {
     return (
       <button
+        type="button"
         onClick={() => setOpen(true)}
-        className="flex h-full min-h-16 w-full items-center justify-center rounded-md border-2 border-dashed border-white/15 px-3 text-sm font-semibold text-chalk/60 transition hover:border-chalk/40 hover:text-chalk"
+        className="flex min-h-24 w-full items-center justify-center gap-1.5 rounded-sm bg-board-blue/20 font-display text-2xl uppercase tracking-wide text-chalk/60 transition hover:bg-board-blue/40 hover:text-chalk"
       >
-        + Add category
+        <Plus weight="bold" aria-hidden />
+        Category
       </button>
     );
   }
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-3 rounded-md bg-desk p-3">
-      <TextField label="Category name" value={name} onChange={(e) => setName(e.target.value)} error={fieldError} autoFocus />
-      {formError && <Alert>{formError}</Alert>}
-      <div className="flex gap-2">
-        <Button type="submit" size="sm" loading={busy}>
-          Add
-        </Button>
-        <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={close}>
-          Cancel
-        </Button>
-      </div>
+    <form onSubmit={submit} noValidate className="flex min-h-24 flex-col justify-center gap-1.5 rounded-sm bg-board-blue/40 p-2">
+      <input
+        autoFocus
+        aria-label="New category name"
+        value={name}
+        disabled={busy}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => e.key === "Escape" && close()}
+        onBlur={() => name.trim() === "" && close()}
+        placeholder="Category name"
+        className={fieldClass(!!error)}
+      />
+      {error ? <p className="text-xs text-buzzer-red">{error}</p> : <p className="text-xs text-chalk/50">Enter to add, Esc to cancel</p>}
     </form>
   );
 }

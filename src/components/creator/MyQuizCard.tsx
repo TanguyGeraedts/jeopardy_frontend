@@ -6,12 +6,12 @@ import { useState } from "react";
 import { useAuthorName } from "@/hooks/useAuthorName";
 import { errorMessage } from "@/lib/api/client";
 import { duplicateQuiz, setPublished, setTopics } from "@/lib/api/quizzes";
-import { cn } from "@/lib/cn";
 import { count, playedText, timeAgo } from "@/lib/format";
 import { countQuestions } from "@/lib/quiz-state";
 import { Button } from "@/components/ui/Button";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { MiniBoard } from "@/components/quiz/MiniBoard";
+import { PublishSwitch } from "@/components/quiz/PublishSwitch";
 import { TopicChips, TopicPicker } from "@/components/quiz/TopicChips";
 import type { Quiz, QuizTopic } from "@/types";
 
@@ -58,7 +58,9 @@ export function MyQuizCard({ quiz, onChange, onDuplicate }: MyQuizCardProps) {
           <Link href={`/quizzes/${quiz.id}`} className="min-w-0 hover:text-gold">
             <h3 className="truncate font-display text-3xl leading-tight tracking-wide">{quiz.name}</h3>
           </Link>
-          <PublishSwitch published={quiz.published} busy={busy === "publish"} disabled={!quiz.published && questions === 0} onToggle={togglePublished} />
+          <div className="pt-1.5">
+            <PublishSwitch published={quiz.published} busy={busy === "publish"} disabled={!quiz.published && questions === 0} onToggle={togglePublished} />
+          </div>
         </div>
 
         <p className="-mt-2 text-sm text-chalk/60">
@@ -112,22 +114,3 @@ export function MyQuizCard({ quiz, onChange, onDuplicate }: MyQuizCardProps) {
   );
 }
 
-/** Public = in Discover. The label says the state, the switch changes it. */
-function PublishSwitch({ published, busy, disabled, onToggle }: { published: boolean; busy: boolean; disabled: boolean; onToggle: () => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={published}
-      aria-label="Show in Discover"
-      disabled={busy || disabled}
-      onClick={onToggle}
-      className="flex shrink-0 items-center gap-2 pt-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      <span className={published ? "text-gold" : "text-chalk/55"}>{published ? "Public" : "Private"}</span>
-      <span className={cn("relative h-5 w-9 rounded-full transition", published ? "bg-gold" : "bg-white/20")}>
-        <span className={cn("absolute left-0.5 top-0.5 size-4 rounded-full bg-white transition-transform", published && "translate-x-4 bg-studio-night")} />
-      </span>
-    </button>
-  );
-}

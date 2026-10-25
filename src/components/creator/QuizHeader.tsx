@@ -44,7 +44,7 @@ export function QuizHeader({ quiz, onUpdated }: QuizHeaderProps) {
 
     return (
         <div className="min-w-0 flex-1">
-            <label htmlFor="quiz-name" className="text-sm text-white/50">
+            <label htmlFor="quiz-name" className="sr-only">
                 Quiz name
             </label>
             <input
@@ -61,7 +61,8 @@ export function QuizHeader({ quiz, onUpdated }: QuizHeaderProps) {
                         e.currentTarget.blur();
                     }
                 }}
-                className="block min-h-14 w-full max-w-xl rounded-md border border-transparent bg-transparent px-1 font-display text-5xl tracking-wide hover:border-white/20 focus:border-chalk/50 focus:outline-none"
+                title="Click to rename"
+                className="-mx-1 block min-h-16 w-full max-w-3xl rounded-md border border-transparent bg-transparent px-1 font-display text-6xl tracking-wide hover:border-white/20 focus:border-chalk/50 focus:outline-none"
             />
         </div>
     );

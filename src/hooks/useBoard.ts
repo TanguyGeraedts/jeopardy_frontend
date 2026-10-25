@@ -65,7 +65,11 @@ export function useBoard(quiz: Quiz) {
     } catch (e) {
       return fail(e);
     }
-    show("Question deleted", { undo: () => editor.addQuestion(categoryId, toQuestionRequest(question)) });
+    show("Question deleted", {
+      undo: async () => {
+        await editor.addQuestion(categoryId, toQuestionRequest(question));
+      },
+    });
   }
 
   function addRow() {

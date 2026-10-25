@@ -6,7 +6,8 @@ export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <Header />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">{children}</main>
+      {/* A page can ask for the full width (the quiz editor's board + side panel) with a data-wide element. */}
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10 has-[[data-wide]]:max-w-[112rem]">{children}</main>
     </>
   );
 }
