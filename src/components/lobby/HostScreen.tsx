@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuiz } from "@/hooks/useQuiz";
+import { useHostableQuiz } from "@/hooks/useHostableQuiz";
 import { errorMessage } from "@/lib/api/client";
 import { createGameSession } from "@/lib/api/sessions";
 import { Alert } from "@/components/ui/Alert";
@@ -24,7 +24,7 @@ function toCreateRequest(quizId: string, request: LobbyRequest): CreateGameSessi
  * /quizzes/{id}/host/{sessionId}, the admin menu, so a refresh keeps you on the same game.
  */
 export function HostScreen({ quizId }: { quizId: string }) {
-  const { state } = useQuiz(quizId);
+  const state = useHostableQuiz(quizId);
   const router = useRouter();
   // Kept so the form isn't reset if creating the lobby fails.
   const [form, setForm] = useState<LobbyForm | undefined>();

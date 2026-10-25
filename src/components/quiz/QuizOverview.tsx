@@ -1,52 +1,49 @@
 "use client";
 
 import { Play } from "@phosphor-icons/react";
-import { useIsOwner } from "@/hooks/useIsOwner";
-import { useQuiz } from "@/hooks/useQuiz";
-import { countQuestions } from "@/lib/quiz-state";
+import { useHostableQuiz } from "@/hooks/useHostableQuiz";
+import { count, playedText } from "@/lib/format";
 import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { Spinner } from "@/components/ui/Spinner";
 import { BackLink } from "@/components/ui/BackLink";
 import { DeleteQuizButton } from "@/components/creator/DeleteQuizButton";
-
-const count = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+import { TopicChips } from "./TopicChips";
 
 /**
- * Landing page for one quiz. Everyone can play it; only the owner sees Edit and Delete.
- * (Hiding the buttons is UX. The backend decides who may actually change or delete.)
+ * Landing page for one quiz: yours, or someone else's published one. Shows the board's shape, never the questions.
+ * Anyone may host it; only the owner sees Edit and Delete (the backend decides who may actually change it).
  */
 export function QuizOverview({ quizId }: { quizId: string }) {
-  const { state } = useQuiz(quizId);
-  const owner = useIsOwner(quizId);
+  const state = useHostableQuiz(quizId);
 
-  if (state.status === "loading" || owner.status === "loading") return <div className="flex justify-center py-20"><Spinner /></div>;
+  if (state.status === "loading") return <div className="flex justify-center py-20"><Spinner /></div>;
   if (state.status === "error") return <Alert title={state.error.title}>{state.error.message}</Alert>;
 
   const { quiz } = state;
-  const questionCount = countQuestions(quiz);
-  const playable = questionCount > 0;
+  const playable = quiz.questionCount > 0;
 
   return (
     <div className="space-y-8">
-      <BackLink href="/creator">My quizzes</BackLink>
+      <BackLink href={quiz.mine ? "/creator" : "/discover"}>{quiz.mine ? "My quizzes" : "Discover"}</BackLink>
 
-      <div>
+      <div className="space-y-3">
         <h1 className="font-display text-6xl tracking-wide">{quiz.name}</h1>
-        <p className="mt-1 text-chalk/60">
-          {count(quiz.categories.length, "category", "categories")}, {count(questionCount, "question", "questions")}
-          {owner.isOwner && ". You made this quiz."}
+        <p className="text-chalk/60">
+          {quiz.mine ? (quiz.published ? "Yours, public in Discover." : "Yours, private.") : `by ${quiz.authorName ?? "someone"}.`}{" "}
+          {count(quiz.categories.length, "category", "categories")}, {count(quiz.questionCount, "question", "questions")}. {playedText(quiz.timesPlayed)}.
         </p>
+        <TopicChips topics={quiz.topics} />
       </div>
 
       <div className="flex flex-wrap items-start gap-3">
         {playable ? (
-          <LinkButton href={`/quizzes/${quiz.id}/host`}><Play weight="fill" aria-hidden />Play</LinkButton>
+          <LinkButton href={`/quizzes/${quiz.id}/host`}><Play weight="fill" aria-hidden />Host this quiz</LinkButton>
         ) : (
-          <Button disabled><Play weight="fill" aria-hidden />Play</Button>
+          <Button disabled><Play weight="fill" aria-hidden />Host this quiz</Button>
         )}
-        {owner.isOwner && (
+        {quiz.mine && (
           <>
             <LinkButton href={`/creator/quizzes/${quiz.id}`} variant="secondary">
               Edit
@@ -59,19 +56,19 @@ export function QuizOverview({ quizId }: { quizId: string }) {
       </div>
       {!playable && (
         <p className="text-sm text-white/50">
-          {owner.isOwner ? "Add some questions with Edit before anyone can play this quiz." : "This quiz has no questions yet."}
+          {quiz.mine ? "Add some questions with Edit before anyone can play this quiz." : "This quiz has no questions yet."}
         </p>
       )}
 
       {quiz.categories.length > 0 && (
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">On the board</h2>
-          {/* The category row as players will see it. */}
+          {/* The category row as players will see it. The questions stay hidden until the game. */}
           <ul className="grid gap-1.5 bg-studio-night" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(10rem, 1fr))` }}>
-            {quiz.categories.map((category) => (
-              <li key={category.id} className="flex min-h-24 flex-col items-center justify-center rounded-md bg-board-blue px-3 py-4 text-center">
+            {quiz.categories.map((category, i) => (
+              <li key={i} className="flex min-h-24 flex-col items-center justify-center rounded-md bg-board-blue px-3 py-4 text-center">
                 <p className="line-clamp-2 font-display text-2xl uppercase leading-tight tracking-wide">{category.name}</p>
-                <p className="mt-1 text-xs text-chalk/70">{count(category.questions.length, "question", "questions")}</p>
+                <p className="mt-1 text-xs text-chalk/70">{count(category.questionCount, "question", "questions")}</p>
               </li>
             ))}
           </ul>

@@ -8,6 +8,12 @@ export const CreatorPaths = {
   quizzes: `${API_V1}/quizzes`,
   /** GET = read, PUT = update, DELETE = delete. */
   quizById: (quizId: string) => `${API_V1}/quizzes/${enc(quizId)}`,
+  /** PUT { published, authorName } */
+  publication: (quizId: string) => `${API_V1}/quizzes/${enc(quizId)}/publication`,
+  /** PUT { topics } */
+  topics: (quizId: string) => `${API_V1}/quizzes/${enc(quizId)}/topics`,
+  /** POST = a private copy for the owner. */
+  duplicate: (quizId: string) => `${API_V1}/quizzes/${enc(quizId)}/duplicate`,
 
   /** POST = add category. */
   categories: (quizId: string) => `${CreatorPaths.quizById(quizId)}/categories`,
@@ -19,6 +25,13 @@ export const CreatorPaths = {
   /** PUT = replace, DELETE = remove. */
   questionById: (quizId: string, categoryId: string, questionId: string) =>
     `${CreatorPaths.questions(quizId, categoryId)}/${enc(questionId)}`,
+} as const;
+
+export const DiscoverPaths = {
+  /** GET ?q=&topic=&sort= : published quizzes, board shape only. */
+  search: `${API_V1}/discover`,
+  /** GET = one quiz you may host (yours or published), board shape only. */
+  byId: (quizId: string) => `${API_V1}/discover/${enc(quizId)}`,
 } as const;
 
 export const GameplayPaths = {
