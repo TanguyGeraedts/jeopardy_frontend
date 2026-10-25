@@ -12,8 +12,8 @@ const leagueGothic = League_Gothic({ variable: "--font-league-gothic", subsets: 
 const domine = Domine({ variable: "--font-domine", subsets: ["latin"], weight: ["600", "700"] });
 
 export const metadata: Metadata = {
-  title: "Jeopardy Creator",
-  description: "Create and manage Jeopardy quizzes",
+  title: "Jeopardy",
+  description: "Build Jeopardy boards, find other people's, and host them live for your group.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
