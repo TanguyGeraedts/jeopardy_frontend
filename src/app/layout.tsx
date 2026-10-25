@@ -3,7 +3,6 @@ import { Domine, Geist, Geist_Mono, League_Gothic } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { jeopardyClerkAppearance } from "@/lib/clerk-appearance";
 import { ToastProvider } from "@/providers/ToastProvider";
-import { Header } from "@/components/layout/Header";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -22,10 +21,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${leagueGothic.variable} ${domine.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up" appearance={jeopardyClerkAppearance}>
-          <ToastProvider>
-            <Header />
-            <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-10">{children}</main>
-          </ToastProvider>
+          {/* The nav bar is in (site)/layout.tsx; the (stage) pages (phone buzzer, game board) have none. */}
+          <ToastProvider>{children}</ToastProvider>
         </ClerkProvider>
       </body>
     </html>

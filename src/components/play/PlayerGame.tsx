@@ -10,7 +10,6 @@ import { buzzTime } from "@/lib/buzz-times";
 import { ordinal, rankTeams } from "@/lib/ranking";
 import { cn } from "@/lib/cn";
 import { sessionTeamStyle } from "@/lib/team-colors";
-import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import type { GameSession } from "@/types";
 
@@ -89,9 +88,10 @@ export function PlayerGame({ gameSessionId }: { gameSessionId: string }) {
   const session = live.status === "connecting" ? null : live.session;
 
   return (
-    <div className="mx-auto flex min-h-[80vh] max-w-md flex-col gap-5 py-6 text-center">
-      {handoff === "sending" && <p className="text-sm text-chalk/60">Starting the game&hellip;</p>}
-      {handoff === "error" && <p role="alert" className="text-sm text-buzzer-red">Could not start the game: {handoffError}</p>}
+    // A full-screen app on the phone: exactly the screen's height, no page scroll or pull-to-refresh mid-game.
+    <div className="fixed inset-0 mx-auto flex max-w-md flex-col overscroll-none bg-studio-night pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-center">
+      {handoff === "sending" && <p className="pt-2 text-sm text-chalk/60">Starting the game&hellip;</p>}
+      {handoff === "error" && <p role="alert" className="px-5 pt-2 text-sm text-buzzer-red">Could not start the game: {handoffError}</p>}
 
       {!session ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-white/60">
@@ -161,69 +161,82 @@ function PlayerScreen({
 
   if (!playerToken || !me) {
     return (
-      <Card className="space-y-2">
-        <p className="font-display text-4xl tracking-wide">You can watch, but not buzz</p>
-        <p className="text-sm text-white/60">
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6">
+        <p className="font-display text-5xl leading-none tracking-wide">You can watch, but not buzz</p>
+        <p className="text-chalk/60">
           {session.state === "LOBBY"
             ? "Waiting for the game to start…"
             : "This browser didn't come from the lobby with a player pass. Rejoin through the lobby to get your buzzer."}
         </p>
-      </Card>
+      </div>
     );
   }
 
   const style = sessionTeamStyle(team?.colour, Math.max(teamIndex, 0));
-
-  if (session.state === "GAME_OVER") return <FinalPlace session={session} teamId={team?.id} solo={solo} />;
+  const score = team?.score ?? 0;
 
   return (
     <>
-      <Card className="overflow-hidden p-0">
-        <div className={cn("h-2", style.bar)} />
-        <div className="flex items-center justify-between gap-3 px-4 py-3 text-left">
+      {/* Who you are, pinned to the top: your team's colour along the edge, your score big on the right. */}
+      <header className="shrink-0">
+        <div className={cn("h-1.5", style.bar)} />
+        <div className="flex items-end justify-between gap-4 px-5 pt-3 text-left">
           <div className="min-w-0">
-            <p className="truncate text-lg font-semibold">{me.name}</p>
+            <p className="text-xs text-chalk/50">
+              Lobby <span className="font-semibold tracking-wider text-chalk/70">{session.lobbyCode}</span>
+            </p>
+            <p className="truncate text-xl font-semibold">{me.name}</p>
             {!solo && team && <p className="truncate text-sm text-chalk/60">{team.name}</p>}
           </div>
-          <p className={cn("font-display text-6xl leading-none tabular-nums", (team?.score ?? 0) < 0 && "text-buzzer-red")}>{team?.score ?? 0}</p>
+          <p className={cn("font-display text-7xl leading-none tabular-nums", score < 0 ? "text-buzzer-red" : "text-gold")}>{score}</p>
         </div>
-      </Card>
+      </header>
 
-      <p aria-live="polite" className={cn("min-h-14 text-xl font-semibold", answering ? "text-gold" : "text-chalk/85")}>
-        {statusText(session, playerId, team, place, answering)}
-      </p>
-      {myBuzz >= 0 && (
-        <p className="-mt-3 text-chalk/70">
-          {myBuzz === 0 ? "First buzz, " : `${ordinal(myBuzz + 1)} buzz, `}
-          <span className="font-display text-3xl leading-none tracking-wide tabular-nums text-chalk">{buzzTime(session.buzzes, myBuzz)}</span>
-          {myBuzz === 0 ? " after the buzzers opened" : " behind the first"}
-        </p>
+      {session.state === "GAME_OVER" ? (
+        <FinalPlace session={session} teamId={team?.id} solo={solo} />
+      ) : (
+        <>
+          <div aria-live="polite" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-6">
+            <p className={cn("text-2xl font-semibold leading-snug", answering ? "text-gold" : "text-chalk/90")}>
+              {statusText(session, playerId, team, place, answering)}
+            </p>
+            {myBuzz >= 0 && (
+              <p className="text-chalk/70">
+                {myBuzz === 0 ? "First buzz, " : `${ordinal(myBuzz + 1)} buzz, `}
+                <span className="font-display text-3xl leading-none tracking-wide tabular-nums text-chalk">{buzzTime(session.buzzes, myBuzz)}</span>
+                {myBuzz === 0 ? " after the buzzers opened" : " behind the first"}
+              </p>
+            )}
+            {buzzError && <p role="alert" className="text-sm text-buzzer-red">{buzzError}</p>}
+            {reconnecting && <p className="text-sm text-chalk/60">Reconnecting&hellip;</p>}
+          </div>
+
+          {/* The bottom half is the buzzer, right under your thumb. */}
+          <div className="flex shrink-0 justify-center px-5 pb-6">
+            <button
+              type="button"
+              disabled={!canBuzz || sending}
+              // pointerdown, not click: fires on touch start, which is what counts in a race.
+              onPointerDown={(e) => {
+                e.preventDefault();
+                press();
+              }}
+              // The show's buzzer, but on your phone: one big red button. Gold when it's your turn to answer.
+              className={cn(
+                "grid size-[min(86vw,46dvh)] select-none place-items-center rounded-full font-display text-[min(20vw,7rem)] leading-none tracking-wide shadow-2xl shadow-black/50 transition",
+                answering
+                  ? "bg-gold text-studio-night"
+                  : canBuzz
+                    ? "bg-buzzer-red text-white active:scale-95 active:brightness-110"
+                    : "bg-desk text-chalk/30",
+              )}
+              style={{ touchAction: "manipulation" }}
+            >
+              {answering ? "You're up" : "Buzz"}
+            </button>
+          </div>
+        </>
       )}
-
-      <button
-        type="button"
-        disabled={!canBuzz || sending}
-        // pointerdown, not click: fires on touch start, which is what counts in a race.
-        onPointerDown={(e) => {
-          e.preventDefault();
-          press();
-        }}
-        // The show's buzzer, but on your phone: one big red button. Gold when it's your turn to answer.
-        className={cn(
-          "mx-auto grid aspect-square w-full max-w-xs select-none place-items-center rounded-full font-display text-8xl tracking-wide shadow-2xl shadow-black/50 transition",
-          answering
-            ? "bg-gold text-studio-night"
-            : canBuzz
-              ? "bg-buzzer-red text-white active:scale-95 active:brightness-110"
-              : "bg-desk text-chalk/30",
-        )}
-        style={{ touchAction: "manipulation" }}
-      >
-        {answering ? "You're up" : "Buzz"}
-      </button>
-
-      {buzzError && <p role="alert" className="text-sm text-buzzer-red">{buzzError}</p>}
-      {reconnecting && <p className="text-sm text-chalk/60">Reconnecting&hellip;</p>}
     </>
   );
 }
@@ -235,13 +248,13 @@ function FinalPlace({ session, teamId, solo }: { session: GameSession; teamId: s
   const top = ranked.filter((r) => r.place <= 3);
 
   return (
-    <>
+    // Scrolls if the top three don't fit (ties can put more than three teams there).
+    <div className="flex min-h-0 flex-1 flex-col justify-center gap-6 overflow-y-auto px-5 py-6">
       {mine && (
-        <Card className="space-y-1 py-6">
+        <div className="space-y-1">
           <p className="text-chalk/70">{solo ? "You finished" : `${mine.team.name} finished`}</p>
-          <p className={cn("font-display text-8xl leading-none tracking-wide", mine.place === 1 ? "text-gold" : "text-chalk")}>{ordinal(mine.place)}</p>
-          <p className="font-display text-4xl tabular-nums text-chalk/85">{mine.team.score} points</p>
-        </Card>
+          <p className={cn("font-display text-[9rem] leading-[0.85] tracking-wide", mine.place === 1 ? "text-gold" : "text-chalk")}>{ordinal(mine.place)}</p>
+        </div>
       )}
       <ol className="space-y-2 text-left">
         {top.map((r) => (
@@ -255,7 +268,7 @@ function FinalPlace({ session, teamId, solo }: { session: GameSession; teamId: s
           </li>
         ))}
       </ol>
-    </>
+    </div>
   );
 }
 
@@ -270,7 +283,8 @@ function statusText(
     case "LOBBY":
       return "Waiting for the game to start…";
     case "BOARD_SELECTION":
-      return session.activeTeamId && session.activeTeamId === team?.id ? "Your pick! Tell the host a clue." : "The host is picking a clue…";
+      // Same for everyone: the host picks (the backend's activeTeamId starts on the first team, so "your pick" was misleading).
+      return "The host is picking a clue…";
     case "CLUE_READING":
       return "Listen… buzzers open soon.";
     case "GAME_OVER":
