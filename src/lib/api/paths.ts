@@ -39,6 +39,7 @@ export const GameplayPaths = {
   /** POST { correct } */
   judge: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/judge`,
   closeClue: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/clue/close`,
+  endGame: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/end`,
   /** POST { delta } or { score } */
   teamScore: (sessionId: string, teamId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/teams/${enc(teamId)}/score`,
   /** PUT { sound } (null = automatic) */

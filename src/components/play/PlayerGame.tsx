@@ -6,6 +6,8 @@ import { useLiveSession } from "@/hooks/useLiveSession";
 import { ApiError, errorMessage, toApiError } from "@/lib/api/client";
 import { buzz, handoffGameSession } from "@/lib/api/sessions";
 import { decodeSessionUser } from "@/lib/auth/jwt";
+import { buzzTime } from "@/lib/buzz-times";
+import { ordinal, rankTeams } from "@/lib/ranking";
 import { cn } from "@/lib/cn";
 import { sessionTeamStyle } from "@/lib/team-colors";
 import { Card } from "@/components/ui/Card";
@@ -127,7 +129,9 @@ function PlayerScreen({
   const buzzing = session.state === "BUZZER_OPEN" || session.state === "ANSWER_EVALUATION";
   const canBuzz = buzzing && !!team?.canBuzz && !!playerToken && !reconnecting;
   const answering = session.answeringPlayerId === playerId;
-  const place = session.buzzes.findIndex((b) => b.playerId === playerId);
+  // Place in line skips locked-out teams; the time is measured against the very first buzz, like on the board.
+  const place = session.buzzes.filter((b) => !b.lockedOut).findIndex((b) => b.playerId === playerId);
+  const myBuzz = session.buzzes.findIndex((b) => b.playerId === playerId);
 
   const press = useCallback(async () => {
     if (!canBuzz || sending || !playerToken) return;
@@ -170,6 +174,8 @@ function PlayerScreen({
 
   const style = sessionTeamStyle(team?.colour, Math.max(teamIndex, 0));
 
+  if (session.state === "GAME_OVER") return <FinalPlace session={session} teamId={team?.id} solo={solo} />;
+
   return (
     <>
       <Card className="overflow-hidden p-0">
@@ -186,6 +192,13 @@ function PlayerScreen({
       <p aria-live="polite" className={cn("min-h-14 text-xl font-semibold", answering ? "text-gold" : "text-chalk/85")}>
         {statusText(session, playerId, team, place, answering)}
       </p>
+      {myBuzz >= 0 && (
+        <p className="-mt-3 text-chalk/70">
+          {myBuzz === 0 ? "First buzz, " : `${ordinal(myBuzz + 1)} buzz, `}
+          <span className="font-display text-3xl leading-none tracking-wide tabular-nums text-chalk">{buzzTime(session.buzzes, myBuzz)}</span>
+          {myBuzz === 0 ? " after the buzzers opened" : " behind the first"}
+        </p>
+      )}
 
       <button
         type="button"
@@ -211,6 +224,37 @@ function PlayerScreen({
 
       {buzzError && <p role="alert" className="text-sm text-buzzer-red">{buzzError}</p>}
       {reconnecting && <p className="text-sm text-chalk/60">Reconnecting&hellip;</p>}
+    </>
+  );
+}
+
+/** The phone at the end: your place big, then the top three (the full podium is on the shared screen). */
+function FinalPlace({ session, teamId, solo }: { session: GameSession; teamId: string | undefined; solo: boolean }) {
+  const ranked = rankTeams(session);
+  const mine = ranked.find((r) => r.team.id === teamId);
+  const top = ranked.filter((r) => r.place <= 3);
+
+  return (
+    <>
+      {mine && (
+        <Card className="space-y-1 py-6">
+          <p className="text-chalk/70">{solo ? "You finished" : `${mine.team.name} finished`}</p>
+          <p className={cn("font-display text-8xl leading-none tracking-wide", mine.place === 1 ? "text-gold" : "text-chalk")}>{ordinal(mine.place)}</p>
+          <p className="font-display text-4xl tabular-nums text-chalk/85">{mine.team.score} points</p>
+        </Card>
+      )}
+      <ol className="space-y-2 text-left">
+        {top.map((r) => (
+          <li
+            key={r.team.id}
+            className={cn("flex items-center gap-3 overflow-hidden rounded-md bg-desk px-4 py-2", r.team.id === teamId && "ring-2 ring-gold")}
+          >
+            <span className="w-10 font-display text-3xl leading-none text-chalk/60">{ordinal(r.place)}</span>
+            <span className="min-w-0 flex-1 truncate font-semibold">{r.team.name}</span>
+            <span className={cn("font-display text-3xl leading-none tabular-nums", r.team.score < 0 && "text-buzzer-red")}>{r.team.score}</span>
+          </li>
+        ))}
+      </ol>
     </>
   );
 }

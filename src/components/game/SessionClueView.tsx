@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useCountdown } from "@/hooks/useCountdown";
+import { buzzTime } from "@/lib/buzz-times";
 import { CLUE_SECONDS } from "@/lib/game-state";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
@@ -70,18 +71,23 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
         )}
         {session.buzzes.length > 0 ? (
           // Solid blocks, no outlines: the buzz order stays readable in a compressed stream.
+          // A wrong answer stays in line crossed out, so everyone can still see how close it was.
           <ol className="flex flex-wrap justify-center gap-[0.5vw]">
             {session.buzzes.map((buzz, i) => (
               <li
                 key={buzz.playerId}
                 className={cn(
-                  "rounded-sm px-[0.9vw] py-[0.35vw] text-[clamp(0.95rem,1.3vw,1.4rem)] font-semibold",
+                  "flex items-baseline gap-[0.6vw] rounded-sm px-[0.9vw] py-[0.35vw] text-[clamp(0.95rem,1.3vw,1.4rem)] font-semibold",
                   buzz.playerId === answeringId ? "bg-gold text-studio-night" : "bg-studio-night/50",
+                  buzz.lockedOut && "text-chalk/45 line-through decoration-buzzer-red decoration-2",
                 )}
               >
-                <span className="mr-2">{i + 1}</span>
-                {nameOf(buzz.playerId)}
-                {!solo && <span className="opacity-70"> ({teamName(buzz.teamId)})</span>}
+                <span>{i + 1}</span>
+                <span>
+                  {nameOf(buzz.playerId)}
+                  {!solo && <span className="opacity-70"> ({teamName(buzz.teamId)})</span>}
+                </span>
+                <span className="font-display text-[1.25em] leading-none tracking-wide tabular-nums">{buzzTime(session.buzzes, i)}</span>
               </li>
             ))}
           </ol>

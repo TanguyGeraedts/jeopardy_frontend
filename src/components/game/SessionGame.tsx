@@ -12,6 +12,7 @@ import { cn } from "@/lib/cn";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
 import type { GameSession, GameTeam, SessionClue } from "@/types";
+import { FinalScoreboard } from "./FinalScoreboard";
 import { Scoreboard } from "./Scoreboard";
 import { SessionClueView } from "./SessionClueView";
 
@@ -75,7 +76,10 @@ export function SessionGame({ quizId, sessionId }: { quizId: string; sessionId: 
         <MainArea session={session} sessionId={sessionId} busy={busy} run={run} />
       </div>
 
-      <SessionScoreboard session={session} busy={busy} onJudge={(correct) => run(() => hostControls.judge(sessionId, correct))} />
+      {/* At the end the final scoreboard has every score; a second one along the bottom would only repeat it. */}
+      {session.state !== "GAME_OVER" && (
+        <SessionScoreboard session={session} busy={busy} onJudge={(correct) => run(() => hostControls.judge(sessionId, correct))} />
+      )}
     </div>
   );
 }
@@ -104,7 +108,7 @@ function MainArea({ session, sessionId, busy, run }: { session: GameSession; ses
       </Centered>
     );
   }
-  if (session.state === "GAME_OVER") return <GameOver session={session} />;
+  if (session.state === "GAME_OVER") return <FinalScoreboard session={session} />;
 
   return <SessionBoard session={session} disabled={busy || session.state !== "BOARD_SELECTION"} onPick={(clue) => run(() => hostControls.selectClue(sessionId, clue.id))} />;
 }
@@ -182,24 +186,6 @@ function SessionScoreboard({ session, busy, onJudge }: { session: GameSession; b
           : undefined
       }
     />
-  );
-}
-
-function GameOver({ session }: { session: GameSession }) {
-  const ranked = [...session.teams].sort((a, b) => b.score - a.score);
-  return (
-    <Centered>
-      <p className="text-[clamp(1.25rem,2.2vw,2rem)] text-chalk/80">Game over</p>
-      <p className="font-display text-[clamp(4rem,11vw,10rem)] leading-none tracking-wide text-gold">{ranked[0]?.name ?? "Nobody"} wins</p>
-      <ol className="mt-4 grid grid-cols-[auto_auto] gap-x-10 gap-y-1 text-left font-display text-[clamp(1.75rem,3vw,3rem)] tracking-wide">
-        {ranked.map((team) => (
-          <li key={team.id} className="contents">
-            <span>{team.name}</span>
-            <span className="text-right tabular-nums">{team.score}</span>
-          </li>
-        ))}
-      </ol>
-    </Centered>
   );
 }
 

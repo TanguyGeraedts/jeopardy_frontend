@@ -35,6 +35,10 @@ export interface SessionTeam {
 export interface SessionBuzz {
     playerId: string;
     teamId: string | null;
+    /** Ms from the host opening the buzzers to the server receiving this buzz. Compare buzzes by the difference. */
+    reactionMs: number;
+    /** The team answered wrongly: shown crossed out, no longer in line. */
+    lockedOut: boolean;
 }
 
 export interface SessionPlayer {
@@ -68,7 +72,7 @@ export interface GameSession {
     activeTeamId: string | null;
     /** Who is answering right now. Only set in ANSWER_EVALUATION. */
     answeringPlayerId: string | null;
-    /** Buzzes on the open clue in arrival order (one per team). */
+    /** Buzzes on the open clue in arrival order (one per team), including locked-out ones. */
     buzzes: SessionBuzz[];
     clues: SessionClue[];
     teams: SessionTeam[];

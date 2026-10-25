@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowSquareOut, Check, Play, X } from "@phosphor-icons/react";
+import { ArrowSquareOut, Check, FlagCheckered, Play, X } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useGameSession } from "@/hooks/useGameSession";
 import { errorMessage } from "@/lib/api/client";
 import { hostControls } from "@/lib/api/sessions";
+import { buzzTime } from "@/lib/buzz-times";
 import { BUZZER_SOUND_IDS, BUZZER_SOUND_LABELS, buzzerSoundFor, playBuzzerSound } from "@/lib/buzzer-sounds";
 import { cn } from "@/lib/cn";
 import { sessionTeamStyle } from "@/lib/team-colors";
@@ -79,6 +80,7 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
           <p className="text-chalk/60">Host controls</p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          {started && session.state !== "GAME_OVER" && <EndGameButton busy={busy} onEnd={() => run(() => hostControls.endGame(sessionId))} />}
           <LinkButton href={`/quizzes/${quizId}/host`} variant="ghost">
             New lobby
           </LinkButton>
@@ -144,6 +146,30 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
   );
 }
 
+/** Ends the game before the last clue. Asks once more first: there's no way back from the final scoreboard. */
+function EndGameButton({ busy, onEnd }: { busy: boolean; onEnd: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+
+  if (!confirming) {
+    return (
+      <Button variant="ghost" disabled={busy} onClick={() => setConfirming(true)}>
+        <FlagCheckered weight="bold" aria-hidden />End game
+      </Button>
+    );
+  }
+  return (
+    <div className="flex items-center gap-2" role="group" aria-label="End the game now?">
+      <span className="text-sm text-chalk/70">Show the final scores now?</span>
+      <Button variant="danger" disabled={busy} onClick={onEnd}>
+        End game
+      </Button>
+      <Button variant="ghost" onClick={() => setConfirming(false)}>
+        Keep playing
+      </Button>
+    </div>
+  );
+}
+
 /** The open clue: who is answering and who is in line, with the same controls as the board. */
 function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; sessionId: string; busy: boolean; run: Run }) {
   const clue = session.clues.find((c) => c.id === session.activeClueId);
@@ -184,8 +210,23 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
         ) : (
           "Buzzers open, nobody has buzzed."
         )}
-        {session.buzzes.length > 1 && <> In line: {session.buzzes.slice(1).map((b) => nameOf(b.playerId)).join(", ")}.</>}
       </p>
+      {session.buzzes.length > 0 && (
+        <ol className="flex flex-wrap gap-1.5 text-sm">
+          {session.buzzes.map((b, i) => (
+            <li
+              key={b.playerId}
+              className={cn(
+                "rounded bg-white/[0.08] px-2 py-0.5",
+                b.playerId === session.answeringPlayerId && "bg-gold font-semibold text-studio-night",
+                b.lockedOut && "text-chalk/45 line-through",
+              )}
+            >
+              {i + 1}. {nameOf(b.playerId)} <span className="tabular-nums opacity-75">{buzzTime(session.buzzes, i)}</span>
+            </li>
+          ))}
+        </ol>
+      )}
 
       <div className="flex flex-wrap gap-2">
         {session.state === "CLUE_READING" && (

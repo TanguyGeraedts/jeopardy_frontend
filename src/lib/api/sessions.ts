@@ -23,6 +23,8 @@ export const hostControls = {
     openBuzzers: (id: string) => apiFetch<GameSession>(GameplayPaths.openBuzzers(id), { method: "POST" }),
     judge: (id: string, correct: boolean) => apiFetch<GameSession>(GameplayPaths.judge(id), { method: "POST", body: { correct } }),
     closeClue: (id: string) => apiFetch<GameSession>(GameplayPaths.closeClue(id), { method: "POST" }),
+    /** Stop early: everyone goes to the final scoreboard with the scores as they are. */
+    endGame: (id: string) => apiFetch<GameSession>(GameplayPaths.endGame(id), { method: "POST" }),
     adjustScore: (id: string, teamId: string, delta: number) =>
         apiFetch<GameSession>(GameplayPaths.teamScore(id, teamId), { method: "POST", body: { delta } }),
     setScore: (id: string, teamId: string, score: number) =>
