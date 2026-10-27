@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Domine, Geist, Geist_Mono, League_Gothic } from "next/font/google";
+import { Geist, Geist_Mono, League_Gothic } from "next/font/google";
+import localFont from "next/font/local";
 import { ClerkProvider } from "@clerk/nextjs";
 import { jeopardyClerkAppearance } from "@/lib/clerk-appearance";
 import { ToastProvider } from "@/providers/ToastProvider";
@@ -10,7 +11,15 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 // The show's type: ultra-compressed values/categories, and a sturdy serif for clues that survives stream compression.
 const leagueGothic = League_Gothic({ variable: "--font-league-gothic", subsets: ["latin"] });
-const domine = Domine({ variable: "--font-domine", subsets: ["latin"], weight: ["600", "700"] });
+// Domine comes from the @fontsource/domine package, not next/font/google: Google serves it from "/l/font?kit=…&…" URLs,
+// which Turbopack can't resolve, so the CI build failed whenever Google handed out those.
+const domine = localFont({
+  variable: "--font-domine",
+  src: [
+    { path: "../../node_modules/@fontsource/domine/files/domine-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "../../node_modules/@fontsource/domine/files/domine-latin-700-normal.woff2", weight: "700", style: "normal" },
+  ],
+});
 
 export const metadata: Metadata = {
   title: "Jeopardy",

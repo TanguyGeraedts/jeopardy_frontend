@@ -6,11 +6,11 @@ Jeopardy's own code is MIT-licensed (see `LICENSE`). It ships these third-party 
 |---|---|---|
 | [Geist, Geist Mono](https://github.com/vercel/geist-font) (Vercel) | Interface text | SIL Open Font License 1.1 |
 | [League Gothic](https://github.com/theleagueof/league-gothic) (The League of Moveable Type) | Values and category names | SIL Open Font License 1.1 |
-| [Domine](https://github.com/googlefonts/domine) (Impallari Type) | Clue text | SIL Open Font License 1.1 |
+| [Domine](https://github.com/googlefonts/domine) (Impallari Type), via [@fontsource/domine](https://fontsource.org/fonts/domine) | Clue text | SIL Open Font License 1.1 |
 | [Phosphor Icons](https://github.com/phosphor-icons/react) | Icons | MIT |
 
-Fonts are downloaded at build time by `next/font/google` and served from this site, so visitors' browsers never contact
-Google.
+Geist and League Gothic are downloaded at build time by `next/font/google`, Domine is bundled from npm, and all of them
+are served from this site, so visitors' browsers never contact Google.
 
 Everything else is made for this project:
 
