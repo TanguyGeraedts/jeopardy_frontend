@@ -38,7 +38,7 @@ export default function ChangelogPage() {
             {release.sections.map((section) => (
               <section key={section.title} className="flex flex-col gap-3">
                 <h3 className="text-base font-semibold text-chalk">{section.title}</h3>
-                <ul className="flex list-disc flex-col gap-2 pl-5 text-base leading-[1.65] text-chalk/85 marker:text-chalk/40">
+                <ul className="flex list-disc flex-col gap-2 pl-5 text-base leading-[1.65] text-chalk/85 marker:text-chalk/60">
                   {section.items.map((item, i) => (
                     <li key={i}>{item}</li>
                   ))}

@@ -54,11 +54,11 @@ export function SliderField({ label, value, min, max, step = 1, onChange, format
           onChange={(e) => onChange(Number(e.target.value))}
         />
       </div>
-      <div className="flex justify-between text-xs text-white/40">
+      <div className="flex justify-between text-xs text-white/60">
         <span>{format(min)}</span>
         <span>{format(max)}</span>
       </div>
-      {error ? <p className="text-xs text-red-300">{error}</p> : hint ? <p className="text-xs text-white/40">{hint}</p> : null}
+      {error ? <p className="text-xs text-red-300">{error}</p> : hint ? <p className="text-xs text-white/60">{hint}</p> : null}
     </div>
   );
 }

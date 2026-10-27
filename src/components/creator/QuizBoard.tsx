@@ -67,7 +67,7 @@ export function QuizBoard({ quiz }: { quiz: Quiz }) {
           {total === 0
             ? "Add a category to start the board."
             : `${filled} of ${total} tiles filled. ${count(dailyDoubles, "daily double", "daily doubles")}.`}
-          <span className="text-chalk/40"> Click a tile to write its clue; names and values edit in place.</span>
+          <span className="text-chalk/60"> Click a tile to write its clue; names and values edit in place.</span>
         </p>
 
         <div className="overflow-x-auto rounded-md bg-studio-night pb-1">

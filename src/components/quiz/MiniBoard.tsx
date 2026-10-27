@@ -11,7 +11,7 @@ const MAX_ROWS = 5;
 export function MiniBoard({ categories, className }: { categories: { name: string; questionCount: number }[]; className?: string }) {
   if (categories.length === 0) {
     return (
-      <div className={cn("grid h-28 place-items-center rounded-sm bg-studio-night/60 text-sm text-chalk/40", className)}>
+      <div className={cn("grid h-28 place-items-center rounded-sm bg-studio-night/60 text-sm text-chalk/60", className)}>
         Empty board
       </div>
     );

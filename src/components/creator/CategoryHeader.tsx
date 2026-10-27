@@ -49,14 +49,14 @@ export function CategoryHeader({ category, onRename, onRemove }: CategoryHeaderP
             e.currentTarget.blur();
           }
         }}
-        className="w-full resize-none overflow-hidden rounded border border-transparent bg-transparent text-center font-display text-[1.6rem] uppercase leading-[1.05] tracking-wide hover:border-white/30 focus:border-chalk/70 focus:outline-none"
+        className="w-full resize-none overflow-hidden rounded border border-transparent bg-transparent text-center font-display text-[1.6rem] uppercase leading-[1.05] tracking-wide hover:border-white/30 focus:border-chalk/70"
       />
       <button
         type="button"
         aria-label={`Delete category ${category.name}`}
         title="Delete category"
         onClick={() => onRemove(category)}
-        className="absolute right-1 top-1 grid size-7 place-items-center rounded text-chalk/25 transition hover:bg-white/[0.12] hover:text-buzzer-red focus-visible:text-chalk group-hover:text-chalk/60"
+        className="absolute right-1 top-1 grid size-7 place-items-center rounded text-chalk/60 transition hover:bg-white/[0.12] hover:text-buzzer-red focus-visible:text-chalk group-hover:text-chalk/60"
       >
         <Trash weight="bold" aria-hidden />
       </button>

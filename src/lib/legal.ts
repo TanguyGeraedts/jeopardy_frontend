@@ -8,6 +8,10 @@ export const LEGAL = {
   lastUpdated: "27 October 2026",
   minimumAccountAge: 13,
   accessLogRetentionDays: 14,
+  // Nightly database backups on the server (backend deploy/vps/backup.sh): deleted data lingers this long in them.
+  backupRetentionDays: 7,
+  // Lobby rooms (nicknames before a game starts) expire after this many hours.
+  lobbyRetentionHours: 4,
   // The backend must delete finished games (players, teams, scores) after this many days.
   gameRetentionDays: 30,
   hosting: {
@@ -30,6 +34,7 @@ export const LEGAL = {
 export const LEGAL_PAGES = [
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },
+  { href: "/cookies", label: "Cookies" },
   { href: "/legal", label: "Legal notice" },
 ] as const;
 

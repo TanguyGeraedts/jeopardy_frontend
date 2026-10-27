@@ -41,14 +41,14 @@ export function RowHeader({ points, onChange, onRemove }: RowHeaderProps) {
             e.currentTarget.blur();
           }
         }}
-        className="w-full min-w-0 rounded border border-transparent bg-transparent text-center font-display text-4xl leading-none text-gold tabular-nums hover:border-white/20 focus:border-chalk/60 focus:outline-none"
+        className="w-full min-w-0 rounded border border-transparent bg-transparent text-center font-display text-4xl leading-none text-gold tabular-nums hover:border-white/20 focus:border-chalk/60"
       />
       <button
         type="button"
         aria-label={`Remove the ${points} row and its questions`}
         title="Remove row"
         onClick={onRemove}
-        className="grid size-7 place-items-center rounded text-chalk/35 transition hover:bg-white/[0.08] hover:text-buzzer-red focus-visible:text-buzzer-red group-hover:text-chalk/60"
+        className="grid size-7 place-items-center rounded text-chalk/60 transition hover:bg-white/[0.08] hover:text-buzzer-red focus-visible:text-buzzer-red group-hover:text-chalk/60"
       >
         <Trash weight="bold" aria-hidden />
       </button>

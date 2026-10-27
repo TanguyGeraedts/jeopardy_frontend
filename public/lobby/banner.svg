@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" role="img" aria-label="Jeopardy">
+  <!-- Self-made lobby banner (replaces a hot-linked image), served from this site. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a1baa"/>
+      <stop offset="1" stop-color="#060b2e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="400" fill="url(#bg)"/>
+  <g fill="#0e1654" stroke="#060b2e" stroke-width="6">
+    <rect x="60" y="300" width="170" height="70" rx="6"/>
+    <rect x="250" y="300" width="170" height="70" rx="6"/>
+    <rect x="780" y="300" width="170" height="70" rx="6"/>
+    <rect x="970" y="300" width="170" height="70" rx="6"/>
+  </g>
+  <g fill="#ffcc00" font-family="'League Gothic','Oswald','Impact','Arial Narrow',sans-serif" font-weight="700" text-anchor="middle">
+    <text x="145" y="352" font-size="48">$200</text>
+    <text x="335" y="352" font-size="48">$400</text>
+    <text x="865" y="352" font-size="48">$800</text>
+    <text x="1055" y="352" font-size="48">$1000</text>
+  </g>
+  <text x="600" y="235" text-anchor="middle" fill="#eef1ff" font-family="'League Gothic','Oswald','Impact','Arial Narrow',sans-serif" font-size="200" letter-spacing="8">JEOPARDY</text>
+</svg>

@@ -15,7 +15,7 @@ export function TextField({ label, error, hint, className, ...props }: TextField
         {label}
       </label>
       <input id={id} aria-invalid={!!error} {...props} className={fieldClass(!!error, className)} />
-      {error ? <p className="text-xs text-red-300">{error}</p> : hint ? <p className="text-xs text-white/40">{hint}</p> : null}
+      {error ? <p className="text-xs text-red-300">{error}</p> : hint ? <p className="text-xs text-white/60">{hint}</p> : null}
     </div>
   );
 }

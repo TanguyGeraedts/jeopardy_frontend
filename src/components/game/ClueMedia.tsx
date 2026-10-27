@@ -2,6 +2,8 @@
 
 import { useRef, useState } from "react";
 import { youtubeEmbedUrl } from "@/lib/media";
+import { isSameOrigin, setMediaConsent, useMediaConsent } from "@/lib/consent";
+import { percent, thumbPosition } from "@/components/ui/SliderField";
 import { cn } from "@/lib/cn";
 
 export type ClueMediaType = "IMAGE" | "VIDEO" | "AUDIO";
@@ -21,7 +23,49 @@ const NOUN: Record<ClueMediaType, string> = { IMAGE: "image", VIDEO: "video", AU
  * play); any other video URL plays as a file. AUDIO plays a file with nothing on screen but our own controls.
  * Sized by the parent: it fills the box and keeps its aspect ratio.
  */
-export function ClueMedia({ type, url, label, className }: ClueMediaProps) {
+export function ClueMedia(props: ClueMediaProps) {
+  const consent = useMediaConsent();
+  // "Load this once" is for this URL only, even if the component stays mounted for the next clue.
+  const [loadedOnce, setLoadedOnce] = useState<string | null>(null);
+
+  // Until the browser says what was chosen, render nothing rather than flash the placeholder.
+  if (consent === "unknown") return null;
+  if (consent === "allowed" || loadedOnce === props.url || isSameOrigin(props.url)) return <LoadedMedia key={props.url} {...props} />;
+  return <MediaPlaceholder {...props} onLoadOnce={() => setLoadedOnce(props.url)} />;
+}
+
+const sourceName = (url: string) => {
+  if (youtubeEmbedUrl(url)) return "YouTube";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "another site";
+  }
+};
+
+const placeholderButton = "rounded-lg bg-white/[0.08] px-3 py-1.5 font-semibold hover:bg-white/[0.14]";
+
+/** Stands in for third-party media until the viewer allows it, for this clue only or from now on. */
+function MediaPlaceholder({ type, url, className, onLoadOnce }: ClueMediaProps & { onLoadOnce: () => void }) {
+  return (
+    <div className={cn("flex max-w-md flex-col items-center gap-3 rounded-lg border border-white/15 bg-studio-night/60 px-5 py-4 text-center text-sm text-chalk", className)}>
+      <p>
+        This clue has a {NOUN[type]} from <strong className="font-semibold">{sourceName(url)}</strong>. Loading it shares your
+        IP address with that site.
+      </p>
+      <div className="flex flex-wrap justify-center gap-2">
+        <button type="button" onClick={onLoadOnce} className={placeholderButton}>
+          Load this once
+        </button>
+        <button type="button" onClick={() => setMediaConsent("allowed")} className={placeholderButton}>
+          Always allow
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LoadedMedia({ type, url, label, className }: ClueMediaProps) {
   const [failed, setFailed] = useState(false);
 
   if (failed) {
@@ -84,11 +128,11 @@ function SoundOnly({ url, label, onError, className }: { url: string; label: str
     else el.pause();
   };
 
-  const seek = (event: React.MouseEvent<HTMLDivElement>) => {
+  const seek = (seconds: number) => {
     const el = audio.current;
     if (!el || !duration) return;
-    const box = event.currentTarget.getBoundingClientRect();
-    el.currentTime = ((event.clientX - box.left) / box.width) * duration;
+    el.currentTime = seconds;
+    setTime(seconds);
   };
 
   return (
@@ -110,7 +154,7 @@ function SoundOnly({ url, label, onError, className }: { url: string; label: str
         aria-label={`${playing ? "Pause" : "Play"} sound: ${label}`}
         className={cn(
           "grid size-[clamp(5rem,14vh,9rem)] place-items-center rounded-full bg-jeopardy-gold text-jeopardy-navy shadow-xl transition hover:brightness-110 active:scale-95",
-          playing && "animate-pulse",
+          playing && "motion-safe:animate-pulse",
         )}
       >
         {playing ? (
@@ -121,8 +165,22 @@ function SoundOnly({ url, label, onError, className }: { url: string; label: str
       </button>
       <div className="flex w-full items-center gap-3 text-sm tabular-nums text-white/70">
         <span>{clock(time)}</span>
-        <div onClick={seek} className="h-2 flex-1 cursor-pointer overflow-hidden rounded-full bg-white/15" role="progressbar" aria-valuemin={0} aria-valuemax={Math.round(duration)} aria-valuenow={Math.round(time)}>
-          <div className="h-full rounded-full bg-jeopardy-gold" style={{ width: duration ? `${(time / duration) * 100}%` : "0%" }} />
+        {/* A real slider, so the arrow keys seek too. The track is drawn here; the input only supplies the thumb. */}
+        <div className="relative h-6 flex-1">
+          <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/15" />
+          <div className="absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-jeopardy-gold" style={{ width: thumbPosition(percent(time, 0, duration)) }} />
+          <input
+            type="range"
+            className="range-input range-input-single"
+            min={0}
+            max={duration || 0}
+            step={1}
+            value={Math.min(time, duration || 0)}
+            disabled={!duration}
+            aria-label={`Position in sound: ${label}`}
+            aria-valuetext={`${clock(time)} of ${clock(duration)}`}
+            onChange={(e) => seek(Number(e.target.value))}
+          />
         </div>
         <span>{clock(duration)}</span>
       </div>

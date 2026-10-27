@@ -24,6 +24,13 @@ const LEDGER: LedgerRow[] = [
     kept: "Until you delete them or your account",
   },
   {
+    what: "Lobby",
+    detail: "The nickname a player picks to join a room, and a player token that can carry the email of a signed-in player.",
+    why: "To gather players before a game starts and hand them over to the game.",
+    basis: "Needed to provide the service (art. 6(1)(b))",
+    kept: `${LEGAL.lobbyRetentionHours} hours`,
+  },
+  {
     what: "Game data",
     detail: "Players' display names from the lobby, teams, scores and buzzes.",
     why: "To run a live game and show the final scoreboard.",
@@ -33,9 +40,9 @@ const LEDGER: LedgerRow[] = [
   {
     what: "Cookies and browser storage",
     detail:
-      "Sign-in cookies from Clerk, a player token in session storage so a buzzer survives a reload, and your board's point rows in local storage.",
-    why: "To keep you signed in, keep players in the game, and remember how you set up a board.",
-    basis: "Strictly necessary or set up by you, so no consent is needed",
+      "Sign-in cookies from Clerk, a player token in session storage so a buzzer survives a reload, and your board's point rows and external-media choice in local storage.",
+    why: "To keep you signed in, keep players in the game, and remember how you set up a board and what you chose.",
+    basis: "Strictly necessary, so no consent is needed (see the cookie policy)",
     kept: "Until you sign out, close the tab or clear site data",
   },
   {
@@ -44,6 +51,20 @@ const LEDGER: LedgerRow[] = [
     why: "To keep the service secure and to investigate abuse or errors.",
     basis: "Legitimate interest in a secure service (art. 6(1)(f))",
     kept: `${LEGAL.accessLogRetentionDays} days`,
+  },
+  {
+    what: "Application logs",
+    detail: "Technical events such as an account being deleted, with the internal account or game ID. No IP addresses or names.",
+    why: "To find and fix errors, and to confirm deletions went through.",
+    basis: "Legitimate interest in a working service (art. 6(1)(f))",
+    kept: "Until newer entries replace them (capped at 30 MB)",
+  },
+  {
+    what: "Backups",
+    detail: "A nightly copy of the database (quizzes and game data), kept on the same server.",
+    why: "To recover from a failure without losing everyone's quizzes.",
+    basis: "Legitimate interest in not losing data (art. 6(1)(f))",
+    kept: `${LEGAL.backupRetentionDays} days, so deleted data is gone from them within a week`,
   },
 ];
 
@@ -63,7 +84,8 @@ export default function PrivacyPage() {
         <DataLedger rows={LEDGER} />
         <p>
           Nothing else is collected. Fonts are served from this site&apos;s own server, and there are no tracking or
-          advertising cookies, so there is nothing to accept.
+          advertising cookies. The only thing you are asked about is external media in quizzes; see the{" "}
+          <TextLink href="/cookies">cookie policy</TextLink>.
         </p>
       </LegalSection>
 
@@ -89,6 +111,10 @@ export default function PrivacyPage() {
             <TextLink href={LEGAL.auth.privacyUrl}>Clerk&apos;s privacy policy</TextLink>.
           </li>
           <li>
+            <strong>The lobby</strong>, where players join with a room code, is a separate service run by the same operator on
+            the same servers. It keeps a room for {LEGAL.lobbyRetentionHours} hours.
+          </li>
+          <li>
             <strong>{LEGAL.hosting.name}</strong> hosts the servers and database in {LEGAL.hosting.locations}, under a data
             processing agreement (GDPR art. 28).
           </li>
@@ -98,8 +124,9 @@ export default function PrivacyPage() {
 
       <LegalSection id="media" title="Videos, images and sounds in quizzes">
         <p>
-          Quiz makers can add media by linking to it. When a clue with media opens, your browser loads it straight from the
-          site it is hosted on, which then sees your IP address.
+          Quiz makers can add media by linking to it. Media from other sites only loads once you allow it, for everything or
+          for a single clue. It then loads straight from the site it is hosted on, which sees your IP address. You can change
+          your choice in the <TextLink href="/cookies">cookie policy</TextLink>.
         </p>
         <LegalList>
           <li>
@@ -131,7 +158,10 @@ export default function PrivacyPage() {
         <p>
           You can do most of this yourself. Edit your name and email in the account menu, delete quizzes from{" "}
           <TextLink href="/creator">My quizzes</TextLink>, and delete your account from the account menu, which also
-          deletes your quizzes. For anything else, email <ContactLink />. You get an answer within one month.
+          deletes your quizzes and the games you hosted. A host can also delete a game straight away from
+          its host page, which removes the players&apos; names and scores. If you played in a game and want your name removed
+          before the {LEGAL.gameRetentionDays} days are up, ask the host or email <ContactLink />, as for anything else. You get
+          an answer within one month.
         </p>
         <p>
           If you think your data is being mishandled, you can complain to the {LEGAL.authority.name},{" "}

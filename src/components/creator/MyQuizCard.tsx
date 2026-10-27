@@ -65,7 +65,7 @@ export function MyQuizCard({ quiz, onChange, onDuplicate }: MyQuizCardProps) {
 
         <p className="-mt-2 text-sm text-chalk/60">
           {count(quiz.categories.length, "category", "categories")}, {count(questions, "question", "questions")}. {playedText(quiz.timesPlayed)}.
-          <span className="block text-chalk/45">Edited {timeAgo(quiz.updatedAt)}</span>
+          <span className="block text-chalk/60">Edited {timeAgo(quiz.updatedAt)}</span>
         </p>
 
         {editingTopics ? (
@@ -85,7 +85,7 @@ export function MyQuizCard({ quiz, onChange, onDuplicate }: MyQuizCardProps) {
           </div>
         )}
 
-        {!quiz.published && questions === 0 && <p className="text-xs text-chalk/45">Add a question before you can publish it.</p>}
+        {!quiz.published && questions === 0 && <p className="text-xs text-chalk/60">Add a question before you can publish it.</p>}
         {error && <p role="alert" className="text-xs text-buzzer-red">{error}</p>}
 
         <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">

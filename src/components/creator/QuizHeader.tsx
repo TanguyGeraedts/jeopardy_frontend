@@ -62,7 +62,7 @@ export function QuizHeader({ quiz, onUpdated }: QuizHeaderProps) {
                     }
                 }}
                 title="Click to rename"
-                className="-mx-1 block min-h-16 w-full max-w-3xl rounded-md border border-transparent bg-transparent px-1 font-display text-6xl tracking-wide hover:border-white/20 focus:border-chalk/50 focus:outline-none"
+                className="-mx-1 block min-h-16 w-full max-w-3xl rounded-md border border-transparent bg-transparent px-1 font-display text-6xl tracking-wide hover:border-white/20 focus:border-chalk/50"
             />
         </div>
     );

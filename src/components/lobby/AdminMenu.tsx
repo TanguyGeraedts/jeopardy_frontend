@@ -252,7 +252,7 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
               className={cn(
                 "rounded bg-white/[0.08] px-2 py-0.5",
                 b.playerId === session.answeringPlayerId && "bg-gold font-semibold text-studio-night",
-                b.lockedOut && "text-chalk/45 line-through",
+                b.lockedOut && "text-chalk/60 line-through",
               )}
             >
               {i + 1}. {nameOf(b.playerId)} <span className="tabular-nums opacity-75">{buzzTime(session.buzzes, i)}</span>
@@ -350,7 +350,7 @@ function TeamRow({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && applyDraft()}
-              className="w-40 rounded-md border border-white/15 bg-black/20 px-3 py-1.5 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
+              className="w-40 rounded-md border border-white/15 bg-black/20 px-3 py-1.5 text-sm text-white placeholder:text-white/55 focus:outline-none focus:ring-2 focus:ring-jeopardy-gold"
             />
             <Button size="sm" variant="secondary" disabled={busy} onClick={applyDraft}>
               Set

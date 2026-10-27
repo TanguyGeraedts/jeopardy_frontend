@@ -75,7 +75,7 @@ export function EditorToolbar({ quiz, onUpdated }: { quiz: Quiz; onUpdated: (qui
           </Button>
         </div>
       )}
-      {!quiz.published && !playable && <p className="text-xs text-chalk/45">Add a question before you can make it public.</p>}
+      {!quiz.published && !playable && <p className="text-xs text-chalk/60">Add a question before you can make it public.</p>}
       {error && <p role="alert" className="text-sm text-buzzer-red">{error}</p>}
     </div>
   );

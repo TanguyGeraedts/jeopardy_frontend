@@ -80,7 +80,7 @@ export function MyQuizzes() {
           <div className="flex flex-wrap items-center gap-3">
             <label className="relative min-w-56 flex-1">
               <span className="sr-only">Search your quizzes</span>
-              <MagnifyingGlass weight="bold" aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-chalk/45" />
+              <MagnifyingGlass weight="bold" aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-chalk/60" />
               <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or topic" className={fieldClass(false, "pl-9")} />
             </label>
             <div role="group" aria-label="Show" className="flex rounded-lg bg-desk p-1">

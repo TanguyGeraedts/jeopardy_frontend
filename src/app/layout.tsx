@@ -3,6 +3,7 @@ import { Domine, Geist, Geist_Mono, League_Gothic } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { jeopardyClerkAppearance } from "@/lib/clerk-appearance";
 import { ToastProvider } from "@/providers/ToastProvider";
+import { ConsentBanner } from "@/components/legal/ConsentBanner";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -23,6 +24,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ClerkProvider signInUrl="/sign-in" signUpUrl="/sign-up" appearance={jeopardyClerkAppearance}>
           {/* The nav bar is in (site)/layout.tsx; the (stage) pages (phone buzzer, game board) have none. */}
           <ToastProvider>{children}</ToastProvider>
+          {/* On every page, including the stage: the board is where clue media actually plays. */}
+          <ConsentBanner />
         </ClerkProvider>
       </body>
     </html>

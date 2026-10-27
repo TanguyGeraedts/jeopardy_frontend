@@ -116,7 +116,7 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
                 className={cn(
                   "flex items-baseline gap-[0.6vw] rounded-sm px-[0.9vw] py-[0.35vw] text-[clamp(0.95rem,1.3vw,1.4rem)] font-semibold",
                   buzz.playerId === answeringId ? "bg-gold text-studio-night" : "bg-studio-night/50",
-                  buzz.lockedOut && "text-chalk/45 line-through decoration-buzzer-red decoration-2",
+                  buzz.lockedOut && "text-chalk/60 line-through decoration-buzzer-red decoration-2",
                 )}
               >
                 <span>{i + 1}</span>

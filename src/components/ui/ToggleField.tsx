@@ -18,7 +18,7 @@ export function ToggleField({ label, description, checked, onChange, disabled }:
         <label htmlFor={id} className="block cursor-pointer text-sm font-medium text-white/80">
           {label}
         </label>
-        {description && <p className="text-xs text-white/40">{description}</p>}
+        {description && <p className="text-xs text-white/60">{description}</p>}
       </div>
       <button
         id={id}

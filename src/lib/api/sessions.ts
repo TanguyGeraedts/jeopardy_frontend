@@ -9,6 +9,9 @@ export const createGameSession = (body: CreateGameSessionRequest, signal?: Abort
 export const getGameSession = (id: string, signal?: AbortSignal) =>
     apiFetch<GameSession>(GameplayPaths.sessionById(id), { signal });
 
+/** Host only. Deletes the game with its players' names, teams and scores now, instead of after the retention period. */
+export const deleteGameSession = (id: string) => apiFetch<void>(GameplayPaths.sessionById(id), { method: "DELETE" });
+
 /** Gives Jeopardy the lobby's handoff token: it imports the players/teams and starts the game. Needs no login. */
 export const handoffGameSession = (id: string, token: string) =>
     apiFetch<GameSession>(GameplayPaths.handoff(id), { method: "POST", body: { token }, auth: false });

@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jeopardy (frontend)
 
-## Getting Started
+Build Jeopardy boards, find other people's, and host them live: the board on a shared screen, buzzers on players' phones.
+Live at [jeopardy.geraedts.dev](https://jeopardy.geraedts.dev).
 
-First, run the development server:
+Next.js app with Clerk sign-in. It talks to the Spring Boot backend (`jeopardy_backend`) through the `/api` proxy in
+`next.config.ts`; players join through the separate lobby service.
+
+## Running it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.local.example .env.local   # fill in the Clerk keys
+npm install
+npm run dev                        # http://localhost:3000, backend expected on :8080
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run lint` and `npm run build` are what CI runs. The Docker image (`Dockerfile`) is deployed to the VPS by
+`.github/workflows/docker.yml`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Legal and privacy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The privacy notice, terms, cookie policy and legal notice live under `src/app/(site)/` and are built from the facts in
+`src/lib/legal.ts`. If what the app stores, how long it keeps it or who processes it changes, update that file and its
+`lastUpdated` date. Third-party fonts and icons are listed in `THIRD_PARTY_NOTICES.md`.
 
-## Learn More
+## Releases
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Bump `version` in `package.json` and add an entry to `CHANGELOG.md`; the site shows it at `/changelog`.

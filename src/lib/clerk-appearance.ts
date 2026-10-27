@@ -41,7 +41,7 @@ export const jeopardyClerkAppearance: Appearance = {
     headerSubtitle: "text-white/60",
     formFieldLabel: "text-white/80 font-medium",
     formFieldInput:
-      "border border-white/10 placeholder:text-white/30 focus:border-white/40 focus:ring-2 focus:ring-white/10",
+      "border border-white/10 placeholder:text-white/55 focus:border-white/40 focus:ring-2 focus:ring-white/10",
     otpCodeFieldInput: "border border-white/10 focus:border-white/40",
     formFieldAction: "text-jeopardy-gold hover:text-jeopardy-gold/80",
     formButtonPrimary: "font-semibold shadow-none hover:brightness-110 active:scale-[0.98]",
@@ -50,7 +50,7 @@ export const jeopardyClerkAppearance: Appearance = {
     socialButtonsIconButton: "bg-transparent border border-white/15 hover:bg-white/5 hover:border-white/30",
     alternativeMethodsBlockButton: "bg-transparent text-white border border-white/15 hover:bg-white/5 hover:border-white/30",
     dividerLine: "bg-white/10",
-    dividerText: "text-white/40",
+    dividerText: "text-white/60",
     identityPreview: "border border-white/10",
     footer: "[background-image:none]",
     footerActionLink: "text-jeopardy-gold font-medium hover:text-jeopardy-gold/80",

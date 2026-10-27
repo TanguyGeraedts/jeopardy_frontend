@@ -256,7 +256,7 @@ export const QuestionPanel = forwardRef<QuestionPanelHandle, QuestionPanelProps>
             onChange={(e) => set("questionText", e.target.value)}
             rows={4}
             placeholder="This city is home to the Eiffel Tower"
-            className="block w-full resize-y rounded-md border border-transparent bg-board-blue px-4 py-4 text-center font-serif text-xl font-bold uppercase leading-snug text-chalk placeholder:text-chalk/35 focus:border-chalk/50 focus:outline-none"
+            className="block w-full resize-y rounded-md border border-transparent bg-board-blue px-4 py-4 text-center font-serif text-xl font-bold uppercase leading-snug text-chalk placeholder:text-chalk/55 focus:border-chalk/50"
           />
         </Field>
 

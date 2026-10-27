@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <!-- Self-made lobby background (replaces a hot-linked image): a dim wall of board tiles. -->
+  <defs>
+    <pattern id="tiles" width="240" height="135" patternUnits="userSpaceOnUse">
+      <rect x="6" y="6" width="228" height="123" rx="8" fill="#0a1baa" opacity="0.35"/>
+    </pattern>
+    <radialGradient id="fade" cx="0.5" cy="0.45" r="0.75">
+      <stop offset="0" stop-color="#060b2e" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#060b2e" stop-opacity="0.95"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="#060b2e"/>
+  <rect width="1920" height="1080" fill="url(#tiles)"/>
+  <rect width="1920" height="1080" fill="url(#fade)"/>
+</svg>

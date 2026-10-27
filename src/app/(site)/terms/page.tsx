@@ -16,7 +16,7 @@ export default function TermsPage() {
     >
       <LegalSection id="service" title="The service">
         <p>
-          Jeopardy is run by {LEGAL.operatorName}, a private individual in {LEGAL.country}, as a free, non-commercial project.
+          Jeopardy is run by {LEGAL.operatorName}, a private individual in {LEGAL.country}, as a free, non-commercial project. Nothing is ever charged, so there are no fees and nothing to refund.
           With an account you can build quizzes, publish them for others and host games. Players join with a room code and
           don&apos;t need an account.
         </p>

@@ -36,13 +36,13 @@ export function Discover() {
       <div className="space-y-4">
         <label className="relative block">
           <span className="sr-only">Search quizzes</span>
-          <MagnifyingGlass weight="bold" aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-chalk/45" />
+          <MagnifyingGlass weight="bold" aria-hidden className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-chalk/60" />
           <input
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search by quiz name or author"
-            className="w-full rounded-lg border border-white/12 bg-desk py-3.5 pl-12 pr-4 text-lg text-chalk placeholder:text-chalk/35 focus:border-chalk/50 focus:outline-none"
+            className="w-full rounded-lg border border-white/12 bg-desk py-3.5 pl-12 pr-4 text-lg text-chalk placeholder:text-chalk/55 focus:border-chalk/50"
           />
         </label>
 

@@ -102,6 +102,10 @@ export function PlayerGame({ gameSessionId }: { gameSessionId: string }) {
       ) : (
         <PlayerScreen session={session} gameSessionId={gameSessionId} playerId={playerId} playerToken={tokens?.player ?? null} reconnecting={live.status === "reconnecting"} />
       )}
+      {/* Players never see the site's footer, so the privacy notice is linked here. New tab: leaving would drop the buzzer. */}
+      <a href="/privacy" target="_blank" rel="noreferrer" className="mx-auto shrink-0 rounded-sm py-1.5 text-xs text-chalk/60 hover:text-chalk">
+        Privacy
+      </a>
     </div>
   );
 }

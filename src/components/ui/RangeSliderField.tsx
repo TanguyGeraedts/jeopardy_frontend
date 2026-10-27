@@ -83,7 +83,7 @@ export function RangeSliderField({
                 />
             </div>
 
-            <div className="flex justify-between text-xs text-white/40">
+            <div className="flex justify-between text-xs text-white/60">
                 <span>{min}</span>
                 <span>{max}</span>
             </div>
@@ -91,8 +91,8 @@ export function RangeSliderField({
                 <p className="text-xs text-red-300">{error}</p>
             ) : (
                 <>
-                    {lowLocked && <p className="text-xs text-white/40">The minimum is fixed for this mode. Drag the maximum to set the cap.</p>}
-                    {hint && <p className="text-xs text-white/40">{hint}</p>}
+                    {lowLocked && <p className="text-xs text-white/60">The minimum is fixed for this mode. Drag the maximum to set the cap.</p>}
+                    {hint && <p className="text-xs text-white/60">{hint}</p>}
                 </>
             )}
         </div>

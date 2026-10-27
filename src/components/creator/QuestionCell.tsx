@@ -26,7 +26,7 @@ export function QuestionCell({ category, points, question, selected, onOpen }: Q
         aria-label={`Add a ${points} point question to ${category.name}`}
         aria-pressed={selected}
         className={cn(
-          "flex min-h-28 items-center justify-center gap-1 rounded-sm bg-board-blue/20 font-display text-3xl text-chalk/35 transition hover:bg-board-blue/45 hover:text-chalk/80",
+          "flex min-h-28 items-center justify-center gap-1 rounded-sm bg-board-blue/20 font-display text-3xl text-chalk/60 transition hover:bg-board-blue/45 hover:text-chalk/80",
           ring,
         )}
       >
