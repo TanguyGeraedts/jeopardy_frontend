@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { GameplayPaths } from "@/lib/api/paths";
+import { stampArrival } from "@/lib/arrival-clock";
 import type { GameSession } from "@/types";
 
 export type LiveSessionState =
@@ -21,7 +22,7 @@ export function useLiveSession(sessionId: string) {
         const source = new EventSource(GameplayPaths.events(sessionId));
 
         source.addEventListener("session", (event) => {
-            setState({ status: "live", session: JSON.parse((event as MessageEvent<string>).data) as GameSession });
+            setState({ status: "live", session: stampArrival(JSON.parse((event as MessageEvent<string>).data) as GameSession) });
         });
         source.onerror = () =>
             setState((prev) => ({ status: "reconnecting", session: prev.status === "connecting" ? null : prev.session }));

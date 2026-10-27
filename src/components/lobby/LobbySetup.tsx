@@ -5,6 +5,8 @@ import { useState } from "react";
 import { cn } from "@/lib/cn";
 import {
     defaultLobbyForm,
+    HEAD_START_MAX,
+    HEAD_START_MIN,
     MAX_PLAYERS,
     MIN_PLAYERS,
     TEAM_COUNT_MAX,
@@ -160,6 +162,27 @@ export function LobbySetup({ initial, onCreate, busy = false }: LobbySetupProps)
                     </ul>
                 </Card>
             )}
+
+            <Card className="space-y-6">
+                <h2 className="text-lg font-bold">Buzzing</h2>
+                <ToggleField
+                    label="Take turns"
+                    description={`Each clue, one ${solo ? "player" : "team"} in turn gets a head start to buzz; after that anyone can steal. Off: everyone buzzes at once, and the buzzers open after a short random delay.`}
+                    checked={form.turns.enabled}
+                    onChange={(enabled) => setForm((f) => ({ ...f, turns: { ...f.turns, enabled } }))}
+                />
+                {form.turns.enabled && (
+                    <SliderField
+                        label="Head start"
+                        min={HEAD_START_MIN}
+                        max={HEAD_START_MAX}
+                        value={form.turns.headStartSeconds}
+                        format={(n) => `${n} s`}
+                        onChange={(headStartSeconds) => setForm((f) => ({ ...f, turns: { ...f.turns, headStartSeconds } }))}
+                        hint="How long only the turn's player or team can buzz. You can change turns any time from the admin page."
+                    />
+                )}
+            </Card>
 
             <Card className="space-y-6">
                 <h2 className="text-lg font-bold">Lobby</h2>

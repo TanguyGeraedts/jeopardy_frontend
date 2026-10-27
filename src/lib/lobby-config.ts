@@ -49,7 +49,17 @@ export const DEFAULT_SOLO: SoloLobbyRequest = {
 /** Solo's minimum is fixed (the slider's minimum handle is locked). */
 export const SOLO_FIXED_MIN = DEFAULT_SOLO.minPlayers;
 
-export const defaultLobbyForm = (): LobbyForm => ({ mode: "TEAMS", teams: { ...DEFAULT_TEAMS, teamColours: [...DEFAULT_TEAMS.teamColours] }, solo: { ...DEFAULT_SOLO } });
+/** Taking turns: the turn team's head start, in seconds (backend TurnRules). */
+export const HEAD_START_MIN = 5;
+export const HEAD_START_MAX = 10;
+export const DEFAULT_HEAD_START = 7;
+
+export const defaultLobbyForm = (): LobbyForm => ({
+  mode: "TEAMS",
+  teams: { ...DEFAULT_TEAMS, teamColours: [...DEFAULT_TEAMS.teamColours] },
+  solo: { ...DEFAULT_SOLO },
+  turns: { enabled: false, headStartSeconds: DEFAULT_HEAD_START },
+});
 
 /** The exact body to send to the lobby service for the selected mode. */
 export const toLobbyRequest = (form: LobbyForm): LobbyRequest => (form.mode === "TEAMS" ? form.teams : form.solo);

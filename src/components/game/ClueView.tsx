@@ -24,17 +24,11 @@ interface ClueViewProps {
 export function ClueView({ category, clue, teams, onBuzz, onReveal, onClose }: ClueViewProps) {
   const { question, revealed, buzzes, lockedTeamIds } = clue;
   const media = question.answerType !== "TEXT" && question.mediaUrl ? { type: question.answerType, url: question.mediaUrl } : null;
-  const timer = useCountdown(CLUE_SECONDS);
-  const low = timer.seconds <= 5;
   const answering = currentBuzz(clue);
   const isAnswering = answering !== undefined;
-
   // The timer stops while a team is answering and carries on if they get it wrong.
-  const { pause, resume } = timer;
-  useEffect(() => {
-    if (isAnswering) pause();
-    else resume();
-  }, [isAnswering, pause, resume]);
+  const timer = useCountdown(CLUE_SECONDS, isAnswering);
+  const low = timer.seconds <= 5;
 
   // Everyone who can buzz, in team order: keys 1-9 buzz for the first nine.
   const buzzers = useMemo(() => teams.flatMap((team, teamIndex) => team.players.map((player) => ({ player, team, teamIndex }))), [teams]);

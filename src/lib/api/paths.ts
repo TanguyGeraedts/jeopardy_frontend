@@ -53,6 +53,10 @@ export const GameplayPaths = {
   judge: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/judge`,
   closeClue: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/clue/close`,
   endGame: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/end`,
+  /** PUT { enabled, headStartSeconds } */
+  turnRules: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/turns`,
+  giveTurn: (sessionId: string, teamId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/turn/${enc(teamId)}`,
+  skipTurn: (sessionId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/turn/skip`,
   /** POST { delta } or { score } */
   teamScore: (sessionId: string, teamId: string) => `${API_V1}/game-sessions/${enc(sessionId)}/teams/${enc(teamId)}/score`,
   /** PUT { sound } (null = automatic) */

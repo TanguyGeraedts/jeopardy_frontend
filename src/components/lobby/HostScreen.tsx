@@ -8,14 +8,15 @@ import { createGameSession } from "@/lib/api/sessions";
 import { Alert } from "@/components/ui/Alert";
 import { Spinner } from "@/components/ui/Spinner";
 import { BackLink } from "@/components/ui/BackLink";
-import type { CreateGameSessionRequest, LobbyForm, LobbyRequest } from "@/types";
+import type { CreateGameSessionRequest, LobbyForm, LobbyRequest, TurnSettings } from "@/types";
 import { LobbySetup } from "./LobbySetup";
 
 /** Maps the setup form onto what the backend accepts. The backend decides the rest (lobby TTL, colours, late join, ...). */
-function toCreateRequest(quizId: string, request: LobbyRequest): CreateGameSessionRequest {
+function toCreateRequest(quizId: string, request: LobbyRequest, turns: TurnSettings): CreateGameSessionRequest {
+  const rules = { turns: turns.enabled, headStartSeconds: turns.headStartSeconds };
   return request.teamCount === null
-    ? { quizId, mode: "SOLO", maxPlayers: request.maxPlayers }
-    : { quizId, mode: "TEAM", maxPlayers: request.maxPlayers, teamCount: request.teamCount };
+    ? { quizId, mode: "SOLO", maxPlayers: request.maxPlayers, ...rules }
+    : { quizId, mode: "TEAM", maxPlayers: request.maxPlayers, teamCount: request.teamCount, ...rules };
 }
 
 /**
@@ -40,7 +41,7 @@ export function HostScreen({ quizId }: { quizId: string }) {
     setCreating(true);
     setCreateError(null);
     try {
-      const { gameSessionId } = await createGameSession(toCreateRequest(quiz.id, request));
+      const { gameSessionId } = await createGameSession(toCreateRequest(quiz.id, request, submitted.turns));
       router.push(`/quizzes/${quiz.id}/host/${gameSessionId}`);
       return; // keep the button disabled while navigating
     } catch (error) {

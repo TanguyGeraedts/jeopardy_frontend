@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toApiError, type ApiError } from "@/lib/api/client";
 import { getGameSession } from "@/lib/api/sessions";
 import { GameplayPaths } from "@/lib/api/paths";
+import { stampArrival } from "@/lib/arrival-clock";
 import type { GameSession } from "@/types";
 
 export type GameSessionState =
@@ -26,7 +27,7 @@ export function useGameSession(sessionId: string) {
 
     const apply = useCallback((session: GameSession) => {
         latest.current++;
-        setState({ status: "success", session });
+        setState({ status: "success", session: stampArrival(session) });
     }, []);
 
     useEffect(() => {
@@ -36,7 +37,7 @@ export function useGameSession(sessionId: string) {
             const ticket = ++latest.current;
             try {
                 const session = await getGameSession(sessionId, controller.signal);
-                if (ticket === latest.current) setState({ status: "success", session });
+                if (ticket === latest.current) setState({ status: "success", session: stampArrival(session) });
             } catch (error) {
                 if (controller.signal.aborted || ticket !== latest.current) return;
                 setState((prev) => (prev.status === "success" ? prev : { status: "error", error: toApiError(error) }));

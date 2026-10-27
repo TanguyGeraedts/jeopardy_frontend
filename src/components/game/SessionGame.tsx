@@ -173,6 +173,8 @@ function SessionScoreboard({ session, busy, onJudge }: { session: GameSession; b
       teams={teams}
       scores={scores}
       colours={session.teams.map((t) => t.colour)}
+      // On the open clue the head start belongs to clueTurnTeamId; between clues, to whoever is up next.
+      turnTeamId={session.activeClueId ? session.clueTurnTeamId : session.turnTeamId}
       clue={
         session.activeClueId
           ? {

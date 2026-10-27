@@ -15,7 +15,17 @@ export const handoffGameSession = (id: string, token: string) =>
 
 /** A player buzzes. playerToken is the lobby-signed game token. accepted = false when the buzz didn't count. */
 export const buzz = (id: string, playerToken: string) =>
-    apiFetch<{ accepted: boolean }>(GameplayPaths.buzz(id), { method: "POST", auth: false, headers: { "X-Player-Token": playerToken } });
+    apiFetch<BuzzResult>(GameplayPaths.buzz(id), { method: "POST", auth: false, headers: { "X-Player-Token": playerToken } });
+
+/**
+ * ACCEPTED: in line. TOO_EARLY: pressed before the buzzers opened or during another team's head start; the player
+ * can't buzz for lockedOutMs. IGNORED: doesn't count, no penalty.
+ */
+export interface BuzzResult {
+    accepted: boolean;
+    result: "ACCEPTED" | "TOO_EARLY" | "IGNORED";
+    lockedOutMs: number;
+}
 
 /** Host controls. Each returns the full session (with answers); every screen also gets the change live. */
 export const hostControls = {
@@ -25,6 +35,11 @@ export const hostControls = {
     closeClue: (id: string) => apiFetch<GameSession>(GameplayPaths.closeClue(id), { method: "POST" }),
     /** Stop early: everyone goes to the final scoreboard with the scores as they are. */
     endGame: (id: string) => apiFetch<GameSession>(GameplayPaths.endGame(id), { method: "POST" }),
+    setTurnRules: (id: string, enabled: boolean, headStartSeconds: number) =>
+        apiFetch<GameSession>(GameplayPaths.turnRules(id), { method: "PUT", body: { enabled, headStartSeconds } }),
+    /** The rotation continues from this team. Before the buzzers open it counts for the clue being read. */
+    giveTurn: (id: string, teamId: string) => apiFetch<GameSession>(GameplayPaths.giveTurn(id, teamId), { method: "POST" }),
+    skipTurn: (id: string) => apiFetch<GameSession>(GameplayPaths.skipTurn(id), { method: "POST" }),
     adjustScore: (id: string, teamId: string, delta: number) =>
         apiFetch<GameSession>(GameplayPaths.teamScore(id, teamId), { method: "POST", body: { delta } }),
     setScore: (id: string, teamId: string, score: number) =>

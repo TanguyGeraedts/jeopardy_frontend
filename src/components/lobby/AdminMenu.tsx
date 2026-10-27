@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowSquareOut, Check, FlagCheckered, Play, X } from "@phosphor-icons/react";
-import { useState } from "react";
+import { ArrowSquareOut, ArrowsClockwise, Check, FlagCheckered, Lightning, Play, X } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
+import { useBuzzerTiming } from "@/hooks/useBuzzerTiming";
 import { useGameSession } from "@/hooks/useGameSession";
 import { errorMessage } from "@/lib/api/client";
 import { hostControls } from "@/lib/api/sessions";
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { LinkButton } from "@/components/ui/LinkButton";
 import type { GameSession, SessionTeam } from "@/types";
+import { TurnPanel } from "./TurnPanel";
 
 const STEPS = [-500, -100, 100, 500] as const;
 
@@ -110,6 +112,8 @@ export function AdminMenu({ quizId, quizName, sessionId }: AdminMenuProps) {
 
       {session.activeClueId && <CurrentClue session={session} sessionId={sessionId} busy={busy} run={run} />}
 
+      <TurnPanel session={session} sessionId={sessionId} busy={busy} run={run} />
+
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">{solo ? "Players" : "Teams"}</h2>
@@ -174,10 +178,33 @@ function EndGameButton({ busy, onEnd }: { busy: boolean; onEnd: () => void }) {
 function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; sessionId: string; busy: boolean; run: Run }) {
   const clue = session.clues.find((c) => c.id === session.activeClueId);
   const nameOf = (playerId: string) => session.players.find((p) => p.id === playerId)?.name ?? "?";
+  const teamName = (teamId: string | null) => session.teams.find((t) => t.id === teamId)?.name ?? "?";
+  const timing = useBuzzerTiming(session);
+  const reading = session.state === "CLUE_READING";
+  const open = () => run(() => hostControls.openBuzzers(sessionId));
+
+  // O opens the buzzers from the keyboard (here and on the board), so nobody on the stream sees a click.
+  useEffect(() => {
+    if (!reading || busy) return;
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement;
+      if (!typing && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "o") open();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   if (!clue) return null;
 
   return (
     <Card className="space-y-3">
+      {reading && (
+        <Button disabled={busy} onClick={open} className="w-full py-4 text-lg">
+          <Lightning weight="fill" aria-hidden />
+          Open buzzers
+          <kbd className="ml-1 rounded bg-studio-night/20 px-1.5 text-sm font-semibold">O</kbd>
+        </Button>
+      )}
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="font-display text-2xl uppercase tracking-wide">
           {clue.category} <span className="text-gold">{clue.value}</span>
@@ -205,10 +232,16 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
           <>
             <span className="font-bold text-chalk">{nameOf(session.answeringPlayerId)}</span> is answering.
           </>
-        ) : session.state === "CLUE_READING" ? (
-          "Buzzers closed while you read."
+        ) : reading ? (
+          session.clueTurnTeamId ? `Buzzers closed while you read. ${teamName(session.clueTurnTeamId)} gets the head start.` : "Buzzers closed while you read."
+        ) : timing.phase === "opening" ? (
+          "Opening the buzzers…"
+        ) : timing.phase === "headStart" ? (
+          clue.dailyDouble || !session.stealOpensInMs
+            ? `Daily double: only ${teamName(session.clueTurnTeamId)} can answer.`
+            : `${teamName(session.clueTurnTeamId)}'s head start: ${Math.ceil(timing.stealInMs / 1000)}s, then anyone can steal.`
         ) : (
-          "Buzzers open, nobody has buzzed."
+          "Buzzers open to everyone, nobody has buzzed."
         )}
       </p>
       {session.buzzes.length > 0 && (
@@ -229,11 +262,6 @@ function CurrentClue({ session, sessionId, busy, run }: { session: GameSession; 
       )}
 
       <div className="flex flex-wrap gap-2">
-        {session.state === "CLUE_READING" && (
-          <Button disabled={busy} onClick={() => run(() => hostControls.openBuzzers(sessionId))}>
-            Open buzzers
-          </Button>
-        )}
         {session.state === "ANSWER_EVALUATION" && (
           <>
             <Button variant="success" disabled={busy} onClick={() => run(() => hostControls.judge(sessionId, true))}>
@@ -289,6 +317,19 @@ function TeamRow({
               <p className="truncate font-semibold">{team.name}</p>
               {!solo && <p className="truncate text-xs text-chalk/60">{members.map((p) => p.name).join(", ") || "No players yet"}</p>}
               {team.lockedOut && <p className="text-xs font-semibold text-buzzer-red">Locked out this clue</p>}
+              {session.turnsEnabled && session.state !== "LOBBY" && (
+                session.turnTeamId === team.id ? (
+                  <p className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-gold">
+                    <ArrowsClockwise weight="bold" aria-hidden />
+                    Their turn
+                  </p>
+                ) : (
+                  <Button size="sm" variant="ghost" disabled={busy} className="-ml-2.5 mt-0.5" onClick={() => run(() => hostControls.giveTurn(sessionId, team.id))}>
+                    <ArrowsClockwise weight="bold" aria-hidden />
+                    Give turn
+                  </Button>
+                )
+              )}
             </div>
             <p className={cn("font-display text-5xl leading-none tabular-nums", team.score < 0 && "text-buzzer-red")}>{team.score}</p>
           </div>

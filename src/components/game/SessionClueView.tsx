@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useBuzzerTiming } from "@/hooks/useBuzzerTiming";
 import { useCountdown } from "@/hooks/useCountdown";
 import { buzzTime } from "@/lib/buzz-times";
 import { CLUE_SECONDS } from "@/lib/game-state";
@@ -13,7 +14,7 @@ interface SessionClueViewProps {
   session: GameSession;
   clue: SessionClue;
   busy: boolean;
-  /** Done reading: let players buzz. */
+  /** Done reading: let players buzz. Keyboard only (O) on the board, so nobody on the stream sees a click. */
   onOpenBuzzers: () => void;
   /** Nobody got it (or time's up): back to the board, no points. */
   onClose: () => void;
@@ -29,6 +30,33 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
   const nameOf = (playerId: string) => session.players.find((p) => p.id === playerId)?.name ?? "?";
   const teamName = (teamId: string | null) => session.teams.find((t) => t.id === teamId)?.name ?? "";
   const solo = session.mode === "SOLO";
+  const timing = useBuzzerTiming(session);
+  const turnTeam = teamName(session.clueTurnTeamId);
+
+  useEffect(() => {
+    if (!reading || busy) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase() === "o") onOpenBuzzers();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [reading, busy, onOpenBuzzers]);
+
+  // What the room needs to know about the buzzers. Never says when they'll open: that's the point of the random delay.
+  const status =
+    timing.phase === "reading"
+      ? session.clueTurnTeamId
+        ? `${turnTeam}'s turn`
+        : "Get ready…"
+      : timing.phase === "opening"
+        ? "Get ready…"
+        : timing.phase === "headStart"
+          ? clue.dailyDouble
+            ? `${turnTeam}'s daily double`
+            : `${turnTeam}'s turn`
+          : session.clueTurnTeamId
+            ? "Anyone can steal!"
+            : "Buzz!";
 
   return (
     // Grows out of the picked tile (the one motion on the board; skipped when the viewer prefers less motion).
@@ -63,6 +91,15 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
       </div>
 
       <div className="space-y-[0.8vw] text-center" aria-live="polite">
+        {/* The head start, big enough to follow on a stream: whose turn, and when the others may steal. */}
+        {timing.phase === "headStart" && !answeringId && (
+          <p className="font-display text-[clamp(2rem,3.6vw,4rem)] leading-none tracking-wide">
+            {status}
+            {!clue.dailyDouble && (
+              <span className="ml-[1vw] text-gold tabular-nums">{Math.ceil(timing.stealInMs / 1000)}</span>
+            )}
+          </p>
+        )}
         {answeringId && (
           <p className="font-display text-[clamp(2rem,3.6vw,4rem)] leading-none tracking-wide">
             {nameOf(answeringId)}
@@ -92,22 +129,19 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
             ))}
           </ol>
         ) : (
-          <p className="text-[clamp(1rem,1.5vw,1.5rem)] text-chalk/75">
-            {reading ? "Read the clue, then open the buzzers." : "Buzzers are open."}
-          </p>
+          timing.phase !== "headStart" && (
+            <p className={cn("font-display text-[clamp(1.5rem,2.6vw,3rem)] leading-none tracking-wide", timing.phase === "open" ? "text-gold" : "text-chalk/75")}>
+              {status}
+            </p>
+          )
         )}
       </div>
 
       <div className="space-y-3">
-        {/* The clock starts when the buzzers open and stops while someone answers. */}
-        {!reading && <ClueTimer paused={!!answeringId} />}
+        {/* The clock starts when the buzzers really open (after the random delay) and stops while someone answers. */}
+        {!reading && timing.phase !== "opening" && <ClueTimer paused={!!answeringId} />}
 
         <div className="flex flex-wrap items-center justify-center gap-2">
-          {reading && (
-            <Button disabled={busy} onClick={onOpenBuzzers} className="px-6 text-base">
-              Open buzzers
-            </Button>
-          )}
           <Button variant="secondary" disabled={showAnswer} onClick={() => setShowAnswer(true)}>
             Show answer
           </Button>
@@ -121,14 +155,9 @@ export function SessionClueView({ session, clue, busy, onOpenBuzzers, onClose }:
 }
 
 function ClueTimer({ paused }: { paused: boolean }) {
-  const timer = useCountdown(CLUE_SECONDS);
+  // Held (not paused) while someone answers: Restart then only refills the clock, it starts again after the answer.
+  const timer = useCountdown(CLUE_SECONDS, paused);
   const low = timer.seconds <= 5;
-
-  const { pause, resume } = timer;
-  useEffect(() => {
-    if (paused) pause();
-    else resume();
-  }, [paused, pause, resume]);
 
   return (
     <div className="space-y-2">

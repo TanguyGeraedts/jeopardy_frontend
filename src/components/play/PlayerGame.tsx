@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useLiveSession } from "@/hooks/useLiveSession";
 import { ApiError, errorMessage, toApiError } from "@/lib/api/client";
 import { buzz, handoffGameSession } from "@/lib/api/sessions";
+import { useBuzzerTiming, type BuzzerTiming } from "@/hooks/useBuzzerTiming";
 import { decodeSessionUser } from "@/lib/auth/jwt";
 import { buzzTime } from "@/lib/buzz-times";
 import { ordinal, rankTeams } from "@/lib/ranking";
@@ -125,9 +126,15 @@ function PlayerScreen({
 
   const [sending, setSending] = useState(false);
   const [buzzError, setBuzzError] = useState<string | null>(null);
+  // Pressed before the buzzers opened (or in someone else's head start): locked out for a moment, like the show.
+  const [tooEarly, setTooEarly] = useState(false);
+  const timing = useBuzzerTiming(session);
+  const myTurn = !!team && team.id === session.clueTurnTeamId;
 
   const buzzing = session.state === "BUZZER_OPEN" || session.state === "ANSWER_EVALUATION";
-  const canBuzz = buzzing && !!team?.canBuzz && !!playerToken && !reconnecting;
+  // Lit only when a buzz would count right now: open to all, or it's your head start.
+  const timingAllows = timing.phase === "open" || (timing.phase === "headStart" && myTurn);
+  const canBuzz = buzzing && timingAllows && !tooEarly && !!team?.canBuzz && !!playerToken && !reconnecting;
   const answering = session.answeringPlayerId === playerId;
   // Place in line skips locked-out teams; the time is measured against the very first buzz, like on the board.
   const place = session.buzzes.filter((b) => !b.lockedOut).findIndex((b) => b.playerId === playerId);
@@ -138,8 +145,12 @@ function PlayerScreen({
     setSending(true);
     setBuzzError(null);
     try {
-      const { accepted } = await buzz(gameSessionId, playerToken);
-      if (accepted) navigator.vibrate?.(80);
+      const result = await buzz(gameSessionId, playerToken);
+      if (result.accepted) navigator.vibrate?.(80);
+      if (result.result === "TOO_EARLY") {
+        setTooEarly(true);
+        setTimeout(() => setTooEarly(false), result.lockedOutMs || 1000);
+      }
     } catch (e) {
       setBuzzError(errorMessage(e));
     } finally {
@@ -197,8 +208,8 @@ function PlayerScreen({
       ) : (
         <>
           <div aria-live="polite" className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-6">
-            <p className={cn("text-2xl font-semibold leading-snug", answering ? "text-gold" : "text-chalk/90")}>
-              {statusText(session, playerId, team, place, answering)}
+            <p className={cn("text-2xl font-semibold leading-snug", answering || (myTurn && timing.phase === "headStart") ? "text-gold" : "text-chalk/90")}>
+              {tooEarly ? "Too early! Wait for the buzzers." : statusText(session, playerId, team, place, answering, timing)}
             </p>
             {myBuzz >= 0 && (
               <p className="text-chalk/70">
@@ -232,7 +243,12 @@ function PlayerScreen({
               )}
               style={{ touchAction: "manipulation" }}
             >
-              {answering ? "You're up" : "Buzz"}
+              {answering
+                ? "You're up"
+                : timing.phase === "headStart" && !myTurn && buzzing && !!session.stealOpensInMs
+                  ? // Someone else's head start: the grey button counts down to the steal.
+                    Math.ceil(timing.stealInMs / 1000)
+                  : "Buzz"}
             </button>
           </div>
         </>
@@ -278,14 +294,26 @@ function statusText(
   team: GameSession["teams"][number] | undefined,
   place: number,
   answering: boolean,
+  timing: BuzzerTiming,
 ): string {
+  const you = session.mode === "SOLO" ? "You have" : "Your team has";
+  const turnName = session.teams.find((t) => t.id === session.clueTurnTeamId)?.name ?? "";
+  const myTurn = !!team && team.id === session.clueTurnTeamId;
   switch (session.state) {
     case "LOBBY":
       return "Waiting for the game to start…";
     case "BOARD_SELECTION":
-      // Same for everyone: the host picks (the backend's activeTeamId starts on the first team, so "your pick" was misleading).
+      // With turns, the team whose turn it is chooses the clue (and gets the head start on it).
+      if (session.turnsEnabled && session.turnTeamId) {
+        if (team && session.turnTeamId === team.id) {
+          return session.mode === "SOLO" ? "Your turn! Pick a clue and tell the host." : "Your team's turn! Pick a clue and tell the host.";
+        }
+        const picking = session.teams.find((t) => t.id === session.turnTeamId)?.name;
+        if (picking) return `${picking} is picking a clue…`;
+      }
       return "The host is picking a clue…";
     case "CLUE_READING":
+      if (session.clueTurnTeamId) return myTurn ? `${you} this turn! Get ready to buzz.` : `${turnName}'s turn. Listen…`;
       return "Listen… buzzers open soon.";
     case "GAME_OVER":
       return "Game over!";
@@ -297,6 +325,13 @@ function statusText(
       if (place > 0) return `You're #${place + 1} in line.`;
       if (team?.lockedOut) return "Wrong answer: you're out for this clue.";
       if (team && session.buzzes.some((b) => b.teamId === team.id && b.playerId !== playerId)) return "A teammate already buzzed.";
+      if (timing.phase === "opening") return "Get ready…";
+      if (timing.phase === "headStart") {
+        if (myTurn) return `${you} the head start: buzz now!`;
+        const clue = session.clues.find((c) => c.id === session.activeClueId);
+        return clue?.dailyDouble ? `${turnName}'s daily double: only they can answer.` : `${turnName}'s turn. You can steal in a moment.`;
+      }
+      if (session.clueTurnTeamId && !myTurn) return session.state === "BUZZER_OPEN" ? "Steal! Buzz now!" : "Buzz to get in line to steal!";
       return session.state === "BUZZER_OPEN" ? "Buzz now!" : "Buzz to get in line!";
     }
   }

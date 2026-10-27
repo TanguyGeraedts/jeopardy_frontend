@@ -19,13 +19,15 @@ interface ScoreboardProps {
   colours?: readonly (string | null)[];
   /** Pass while a clue is open to show who is answering and the ✓ / ✗ buttons. */
   clue?: ClueStatus;
+  /** Taking turns: this team is up (shown while no one is answering). */
+  turnTeamId?: string | null;
 }
 
 /**
  * Team scores along the bottom of the board. Sized for a shared screen: big League Gothic numbers, a thick team-colour
  * bar, and the answering team as a solid gold block (outlines and small labels blur in a compressed stream).
  */
-export function Scoreboard({ teams, scores, colours, clue }: ScoreboardProps) {
+export function Scoreboard({ teams, scores, colours, clue, turnTeamId }: ScoreboardProps) {
   if (teams.length === 0) return <p className="py-3 text-center text-chalk/60">Waiting for teams to join&hellip;</p>;
 
   return (
@@ -55,6 +57,9 @@ export function Scoreboard({ teams, scores, colours, clue }: ScoreboardProps) {
                 {score}
               </p>
               {locked && <p className="text-[clamp(0.75rem,1vw,1.05rem)] font-semibold">Locked out</p>}
+              {!locked && !answering && team.id === turnTeamId && (
+                <p className="text-[clamp(0.75rem,1vw,1.05rem)] font-semibold text-gold">Their turn</p>
+              )}
               {canJudge && clue && (
                 <div className="mt-[0.4vw] flex justify-center gap-2">
                   <button type="button" aria-label={`${team.name} answered correctly`} onClick={() => clue.onCorrect(team.id)} className="grid min-h-9 flex-1 place-items-center rounded-sm bg-emerald-600 text-white hover:brightness-110">

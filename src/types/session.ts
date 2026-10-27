@@ -7,6 +7,9 @@ export interface CreateGameSessionRequest {
     maxPlayers?: number;
     /** Required for TEAM (2-8), must be omitted for SOLO. */
     teamCount?: number;
+    /** Taking turns (default off), and the turn team's head start in seconds (5-10, default 7). */
+    turns?: boolean;
+    headStartSeconds?: number;
 }
 
 /** gameplay/adapter/in/web/dto/CreateGameSessionResponse.java */
@@ -74,6 +77,17 @@ export interface GameSession {
     answeringPlayerId: string | null;
     /** Buzzes on the open clue in arrival order (one per team), including locked-out ones. */
     buzzes: SessionBuzz[];
+    /** Taking turns: each clue one team gets a head start to buzz, then anyone may steal. */
+    turnsEnabled: boolean;
+    headStartSeconds: number;
+    /** Whose turn it is (gets the head start on the next clue). Null without turns. */
+    turnTeamId: string | null;
+    /** The team with the head start on the open clue. Null without turns or when no clue is open. */
+    clueTurnTeamId: string | null;
+    /** Ms (from when this was sent) until the buzzers open: 0 = open, null = not opened yet / no clue. */
+    buzzersOpenInMs: number | null;
+    /** Ms until anyone may steal (end of the head start): 0 = open to all, null = no head start. */
+    stealOpensInMs: number | null;
     clues: SessionClue[];
     teams: SessionTeam[];
     players: SessionPlayer[];

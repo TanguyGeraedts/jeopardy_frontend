@@ -45,11 +45,19 @@ export interface SoloLobbyRequest {
 
 export type LobbyRequest = TeamsLobbyRequest | SoloLobbyRequest;
 
+/** Taking turns: each clue one team (in rotation) gets a head start to buzz, then anyone may steal. */
+export interface TurnSettings {
+    enabled: boolean;
+    headStartSeconds: number;
+}
+
 /** What the setup form edits. Both drafts are kept so switching mode doesn't lose what was typed. */
 export interface LobbyForm {
     mode: LobbyMode;
     teams: TeamsLobbyRequest;
     solo: SoloLobbyRequest;
+    /** A game setting (sent to our backend), not a lobby one. */
+    turns: TurnSettings;
 }
 
 /** Field name -> message. Empty object means valid. */
